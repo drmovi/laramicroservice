@@ -22,7 +22,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Drmovi\\Larapackager\\Providers\\ConsoleServiceProvider"
+        "Drmovi\\LaraMicroservice\\Providers\\ConsoleServiceProvider"
       ]
     }
   }
