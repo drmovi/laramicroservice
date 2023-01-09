@@ -1,0 +1,34 @@
+{
+    "name": "{{PACKAGE_COMPOSER_NAME}}",
+    "type": "package",
+    "version": "{{PACKAGE_VERSION}}",
+    "description": "{{PACKAGE_DESCRIPTION}}",
+    "license": "MIT",
+    "require": {
+        "php": "^8.0.2",
+        "guzzlehttp/guzzle": "^7.2",
+        "laravel/framework": "^9.19"
+    },
+    "autoload": {
+        "psr-4": {
+            "{{PACKAGE_COMPOSER_NAMESPACE}}\\": "app/",
+            "{{PACKAGE_COMPOSER_NAMESPACE}}\\Database\\Factories\\": "database/factories/",
+            "{{PACKAGE_COMPOSER_NAMESPACE}}\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "extra": {
+        "providers": [
+            "{{PACKAGE_COMPOSER_NAMESPACE}}\\Providers\\{{PACKAGE_CLASS_NAME}}ServiceProvider",
+            "{{PACKAGE_COMPOSER_NAMESPACE}}\\Providers\\RouteServiceProvider",
+            "{{PACKAGE_COMPOSER_NAMESPACE}}\\Providers\\EventServiceProvider",
+            "{{PACKAGE_COMPOSER_NAMESPACE}}\\Providers\\ConsoleServiceProvider"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "{{PACKAGE_COMPOSER_NAMESPACE}}\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

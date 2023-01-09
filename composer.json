@@ -1,0 +1,27 @@
+{
+    "name": "drmovi/larapackager",
+    "description": "Create laravel package scaffold",
+    "type": "package",
+    "require": {
+        "php": ">=8.1",
+        "laravel/framework": ">=9"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Drmovi\\Larapackager\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "drmovi",
+            "email": "drmovi000@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "extra": {
+        "providers": [
+            "Drmovi\\Larapackager\\Providers\\ConsoleServiceProvider"
+        ]
+    }
+}
