@@ -28,7 +28,7 @@ class MicroserviceGenerator extends Command
     {
         $packageName = $this->getPackageName();
         $packageVersion = $this->getPackageVersion();
-        $packageDescription = $this->ask('write short description of your package');
+        $packageDescription = $this->ask('write short description of your microservice');
         $packageNamespace = $this->getPackageNamespace($packageName);
         $packageDirectory = $this->getPackageDirectory($packageName);
         $packageFullDirectory = base_path($packageDirectory);
@@ -62,7 +62,7 @@ class MicroserviceGenerator extends Command
 
     private function getPackageName(): string
     {
-        $name = $this->ask('What is the composer name of your package?');
+        $name = $this->ask('What is the composer name of your microservice?');
         if (!preg_match('{^[a-z0-9_.-]+/[a-z0-9_.-]+$}D', $name)) {
             $this->error('Invalid composer name. It should be lowercase and have a vendor name, a forward slash, and a package name, matching: [a-z0-9_.-]+/[a-z0-9_.-]+');
             return $this->getPackageName();
@@ -78,7 +78,7 @@ class MicroserviceGenerator extends Command
 
     private function getPackageNamespace(string $packageName): string
     {
-        $namespace = $this->ask('write your package namespace', $this->getSuggestedNNamespace($packageName));
+        $namespace = $this->ask('write your microservice namespace', $this->getSuggestedNNamespace($packageName));
         if (!preg_match('/^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\\\]*$/', $namespace)) {
             $this->error('Invalid namespace. It should be a valid php namespace, matching: ^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\\x80-\xff]*$');
             return $this->getPackageNamespace($packageName);
@@ -106,7 +106,7 @@ class MicroserviceGenerator extends Command
 
     private function getPackageDirectory(string $packageName): string
     {
-        $dir = $this->ask('write package directory relative to project root', $this->getDefaultPackageDirectory($packageName));
+        $dir = $this->ask('write microservice directory relative to project root', $this->getDefaultPackageDirectory($packageName));
         if (!preg_match('/^(.+)\/([^\/]+)$/', $dir)) {
             $this->error('package directory should match ^(.+)\/([^\/]+)$');
             return $this->getPackageDirectory($packageName);
@@ -154,7 +154,7 @@ class MicroserviceGenerator extends Command
 
     private function getPackageVersion(): string
     {
-        return $this->ask('what\'s your package version?', '1.0.0');
+        return $this->ask('what\'s your microservice version?', '1.0.0');
     }
 
     private function sanitizeRepositories(\stdClass $content): void
