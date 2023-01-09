@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Process\Process;
 
@@ -34,7 +35,8 @@ class MicroserviceGenerator extends Command
         $packageFullDirectory = base_path($packageDirectory);
         $loadItLocally = $this->confirm('Do you want to load it locally in composer?', true);
         $composerFileContent = File::get(base_path('composer.json'));
-        try{
+        $phpunitXmlFileContent = $this->getPhpunitXmlFileContent();
+        try {
 
             $this->createPackageDirectory($packageFullDirectory);
             $this->preparePackageFiles(
@@ -50,11 +52,13 @@ class MicroserviceGenerator extends Command
                 ]
             );
             $this->addPackageToComposer($packageName, $packageDirectory, $loadItLocally);
-        }catch (\Throwable $e){
+            $this->addTestDirectoriesToPhpunitXmlFile($packageDirectory);
+        } catch (\Throwable $e) {
             $this->error($e->getMessage());
             $this->info('Rolling back...');
             $this->deletePackageDirectory($packageFullDirectory);
             $this->restoreComposerFile($composerFileContent);
+            $this->setPhpunitXmlFileContent($phpunitXmlFileContent);
         }
 
 
@@ -116,7 +120,7 @@ class MicroserviceGenerator extends Command
 
     private function createPackageDirectory(string $packageDirectory): void
     {
-        File::copyDirectory(__DIR__.'/../../stub', $packageDirectory);
+        File::copyDirectory(__DIR__ . '/../../stub', $packageDirectory);
     }
 
     private function preparePackageFiles(string $packageFullDirectory, array $placeholders): void
@@ -187,7 +191,7 @@ class MicroserviceGenerator extends Command
         File::deleteDirectory($packageFullDirectory);
     }
 
-    private function restoreComposerFile(string $composerFileContent):void
+    private function restoreComposerFile(string $composerFileContent): void
     {
         File::put(base_path('composer.json'), $composerFileContent);
         $command = array_merge($this->composer->findComposer(), ['install']);
@@ -197,5 +201,33 @@ class MicroserviceGenerator extends Command
         $process->run(function (string $type, string $data) {
             $this->info($data);
         });
+    }
+
+    private function setPhpunitXmlFileContent(string $content): void
+    {
+        File::put(base_path('phpunit.xml'), $content);
+    }
+
+
+
+    private function addTestDirectoriesToPhpunitXmlFile(string $packageDirectory): void
+    {
+        $crawler = new Crawler(File::get(base_path('phpunit.xml')));
+        $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Unit"]')->each(function (Crawler $node) use ($crawler,$packageDirectory) {
+            $child = $crawler->getNode(0)->parentNode->createElement('directory', $packageDirectory. '/tests/Unit');
+            $child->setAttribute('suffix','Test.php');
+            $node->getNode(0)->appendChild($child);
+        });
+        $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Feature"]')->each(function (Crawler $node) use ($crawler,$packageDirectory) {
+            $child = $crawler->getNode(0)->parentNode->createElement('directory', $packageDirectory. '/tests/Feature');
+            $child->setAttribute('suffix','Test.php');
+            $node->getNode(0)->appendChild($child);
+        });
+        $this->setPhpunitXmlFileContent($crawler->getNode(0)->ownerDocument->saveXML());
+    }
+
+    private function getPhpunitXmlFileContent(): string
+    {
+        return File::get(base_path('phpunit.xml'));
     }
 }
