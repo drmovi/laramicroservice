@@ -1,8 +1,8 @@
 <?php
 
-namespace Drmovi\Larapackager\Providers;
+namespace Drmovi\LaraMicroservice\Providers;
 
-use Drmovi\Larapackager\Console\MicroserviceGenerator;
+use Drmovi\LaraMicroservice\Console\MicroserviceGenerator;
 use Illuminate\Support\ServiceProvider;
 
 class ConsoleServiceProvider extends ServiceProvider

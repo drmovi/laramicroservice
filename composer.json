@@ -1,5 +1,5 @@
 {
-  "name": "drmovi/larapackager",
+  "name": "drmovi/laramicroservice",
   "description": "Create laravel package scaffold",
   "type": "package",
   "require": {
@@ -9,7 +9,7 @@
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "Drmovi\\Larapackager\\": "src/"
+      "Drmovi\\LaraMicroservice\\": "src/"
     }
   },
   "authors": [

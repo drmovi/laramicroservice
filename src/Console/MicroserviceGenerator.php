@@ -1,6 +1,6 @@
 <?php
 
-namespace Drmovi\Larapackager\Console;
+namespace Drmovi\LaraMicroservice\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
