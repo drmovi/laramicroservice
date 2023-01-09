@@ -214,12 +214,12 @@ class MicroserviceGenerator extends Command
     {
         $crawler = new Crawler(File::get(base_path('phpunit.xml')));
         $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Unit"]')->each(function (Crawler $node) use ($crawler,$packageDirectory) {
-            $child = $crawler->getNode(0)->parentNode->createElement('directory', $packageDirectory. '/tests/Unit');
+            $child = $crawler->getNode(0)->parentNode->createElement('directory', './'.$packageDirectory. '/tests/Unit');
             $child->setAttribute('suffix','Test.php');
             $node->getNode(0)->appendChild($child);
         });
         $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Feature"]')->each(function (Crawler $node) use ($crawler,$packageDirectory) {
-            $child = $crawler->getNode(0)->parentNode->createElement('directory', $packageDirectory. '/tests/Feature');
+            $child = $crawler->getNode(0)->parentNode->createElement('directory', './'.$packageDirectory. '/tests/Feature');
             $child->setAttribute('suffix','Test.php');
             $node->getNode(0)->appendChild($child);
         });
