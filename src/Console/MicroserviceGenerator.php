@@ -9,15 +9,15 @@ use Illuminate\Support\Str;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Process\Process;
 
-class PackageGenerator extends Command
+class MicroserviceGenerator extends Command
 {
 
-    protected $signature = 'package:scaffold';
+    protected $signature = 'microservice:scaffold';
 
 
-    protected $description = 'Generate a package skeleton inside a laravel project';
+    protected $description = 'Generate a microservice skeleton inside a laravel project';
 
-    private const PACKAGE_DIRECTORY = 'packages';
+    private const PACKAGE_DIRECTORY = 'microservices';
 
     public function __construct(private readonly Composer $composer)
     {

@@ -2,14 +2,14 @@
 
 namespace Drmovi\Larapackager\Providers;
 
-use Drmovi\Larapackager\Console\PackageGenerator;
+use Drmovi\Larapackager\Console\MicroserviceGenerator;
 use Illuminate\Support\ServiceProvider;
 
 class ConsoleServiceProvider extends ServiceProvider
 {
 
     private array $commands = [
-        PackageGenerator::class,
+        MicroserviceGenerator::class,
     ];
 
     public function boot(): void
