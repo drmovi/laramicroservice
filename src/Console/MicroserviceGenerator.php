@@ -2,9 +2,11 @@
 
 namespace Drmovi\LaraMicroservice\Console;
 
+use Drmovi\LaraMicroservice\Traits\Package;
 use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Finder\SplFileInfo;
@@ -12,13 +14,13 @@ use Symfony\Component\Process\Process;
 
 class MicroserviceGenerator extends Command
 {
+    use Package;
 
     protected $signature = 'microservice:scaffold';
 
 
     protected $description = 'Generate a microservice skeleton inside a laravel project';
 
-    private const PACKAGE_DIRECTORY = 'microservices';
 
     public function __construct(private readonly Composer $composer)
     {
@@ -32,9 +34,10 @@ class MicroserviceGenerator extends Command
         $packageDescription = $this->ask('write short description of your microservice');
         $packageNamespace = $this->getPackageNamespace($packageName);
         $packageDirectory = $this->getPackageDirectory($packageName);
-        $packageFullDirectory = base_path($packageDirectory);
+        $packageFullDirectory = $this->getPackageFullDirectory($packageDirectory);
         $composerFileContent = File::get(base_path('composer.json'));
         $phpunitXmlFileContent = $this->getPhpunitXmlFileContent();
+        $laravelVersion = $this->getLaravelVersion();
         try {
 
             $this->createPackage(
@@ -44,6 +47,7 @@ class MicroserviceGenerator extends Command
                 $packageDescription,
                 $packageNamespace,
                 $packageDirectory,
+                $laravelVersion
             );
         } catch (\Throwable $e) {
             $this->error($e->getMessage());
@@ -56,15 +60,6 @@ class MicroserviceGenerator extends Command
 
     }
 
-    private function getPackageName(): string
-    {
-        $name = $this->ask('What is the composer name of your microservice?');
-        if (!preg_match('{^[a-z0-9_.-]+/[a-z0-9_.-]+$}D', $name)) {
-            $this->error('Invalid composer name. It should be lowercase and have a vendor name, a forward slash, and a package name, matching: [a-z0-9_.-]+/[a-z0-9_.-]+');
-            return $this->getPackageName();
-        }
-        return $name;
-    }
 
     private function getSuggestedNNamespace(string $packageName): string
     {
@@ -93,12 +88,6 @@ class MicroserviceGenerator extends Command
         return Str::replace('_', '-', Str::kebab(Str::of($packageName)->explode('/')->pop()));
     }
 
-
-    private function getPackageDirectory(string $packageName): string
-    {
-        $name = Str::of($packageName)->explode('/');
-        return self::PACKAGE_DIRECTORY . '/' . $name[1];
-    }
 
     private function createPackageDirectory(string $packageDirectory): void
     {
@@ -164,33 +153,6 @@ class MicroserviceGenerator extends Command
         })->toArray();
     }
 
-    /**
-     * @param string $packageFullDirectory
-     * @return void
-     */
-    private function deletePackageDirectory(string $packageFullDirectory): void
-    {
-        File::deleteDirectory($packageFullDirectory);
-    }
-
-    private function restoreComposerFile(string $composerFileContent): void
-    {
-        File::put(base_path('composer.json'), $composerFileContent);
-        $command = array_merge($this->composer->findComposer(), ['install']);
-
-        $process = (new Process($command, base_path()))->setTimeout(null);
-
-        $process->run(function (string $type, string $data) {
-            $this->info($data);
-        });
-    }
-
-    private function setPhpunitXmlFileContent(string $content): void
-    {
-        File::put(base_path('phpunit.xml'), $content);
-    }
-
-
     private function addTestDirectoriesToPhpunitXmlFile(string $packageDirectory): void
     {
         $crawler = new Crawler(File::get(base_path('phpunit.xml')));
@@ -207,11 +169,6 @@ class MicroserviceGenerator extends Command
         $this->setPhpunitXmlFileContent($crawler->getNode(0)->ownerDocument->saveXML());
     }
 
-    private function getPhpunitXmlFileContent(): string
-    {
-        return File::get(base_path('phpunit.xml'));
-    }
-
 
     private function createPackage(
         string $packageFullDirectory,
@@ -220,6 +177,7 @@ class MicroserviceGenerator extends Command
         mixed  $packageDescription,
         string $packageNamespace,
         string $packageDirectory,
+        string $laravelVersion
     ): void
     {
         $this->createPackageDirectory($packageFullDirectory);
@@ -235,7 +193,30 @@ class MicroserviceGenerator extends Command
                 '{{PACKAGE_FILE_NAME}}' => $this->getPackageFileName($packageName),
             ]
         );
+        $this->updateComposerFile($packageDirectory, $laravelVersion);
         $this->addPackageToComposer($packageName, $packageDirectory);
         $this->addTestDirectoriesToPhpunitXmlFile($packageDirectory);
+    }
+
+    private function getLaravelVersion(): string
+    {
+        $version = (int) $this->ask('what\'s your microservice version?', config('laramicroservice.laravel_default_version'));
+        if (!$version) {
+            $this->error('version must be an integer');
+            return $this->getLaravelVersion();
+        }
+        return $version;
+    }
+
+    private function updateComposerFile(string $packageDirectory, string $laravelVersion):void
+    {
+        $laravelComposer = Http::get(config('laramicroservice.laravel_repo_url') . '/'.$laravelVersion . '.x/composer.json')->throw()->json();
+        $packageComposerContent = json_decode(File::get(base_path($packageDirectory . '/composer.json')), true);
+        $laravelComposer['keywords'] = [];
+        $laravelComposer['description'] = '';
+        $laravelComposer['autoload']['psr-4'] = [];
+        $laravelComposer['autoload-dev']['psr-4'] = [];
+        $composerContent  = array_replace_recursive($laravelComposer,$packageComposerContent);
+        File::put(base_path($packageDirectory . '/composer.json'), json_encode($composerContent, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 }
