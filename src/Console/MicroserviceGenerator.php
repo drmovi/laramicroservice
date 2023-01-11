@@ -33,26 +33,18 @@ class MicroserviceGenerator extends Command
         $packageNamespace = $this->getPackageNamespace($packageName);
         $packageDirectory = $this->getPackageDirectory($packageName);
         $packageFullDirectory = base_path($packageDirectory);
-        $loadItLocally = $this->confirm('Do you want to load it locally in composer?', true);
         $composerFileContent = File::get(base_path('composer.json'));
         $phpunitXmlFileContent = $this->getPhpunitXmlFileContent();
         try {
 
-            $this->createPackageDirectory($packageFullDirectory);
-            $this->preparePackageFiles(
+            $this->createPackage(
                 $packageFullDirectory,
-                [
-                    '{{PACKAGE_COMPOSER_NAME}}' => $packageName,
-                    '{{PACKAGE_VERSION}}' => $packageVersion,
-                    '{{PACKAGE_DESCRIPTION}}' => $packageDescription,
-                    '{{PACKAGE_COMPOSER_NAMESPACE}}' => str_replace('\\', '\\\\', $packageNamespace),
-                    '{{PACKAGE_NAMESPACE}}' => $packageNamespace,
-                    '{{PACKAGE_CLASS_NAME}}' => $this->getPackageClassName($packageName),
-                    '{{PACKAGE_FILE_NAME}}' => $this->getPackageFileName($packageName),
-                ]
+                $packageName,
+                $packageVersion,
+                $packageDescription,
+                $packageNamespace,
+                $packageDirectory,
             );
-            $this->addPackageToComposer($packageName, $packageDirectory, $loadItLocally);
-            $this->addTestDirectoriesToPhpunitXmlFile($packageDirectory);
         } catch (\Throwable $e) {
             $this->error($e->getMessage());
             $this->info('Rolling back...');
@@ -91,12 +83,6 @@ class MicroserviceGenerator extends Command
 
     }
 
-    private function getDefaultPackageDirectory(string $packageName): string
-    {
-        $name = Str::of($packageName)->explode('/');
-        return self::PACKAGE_DIRECTORY . '/' . $name[1];
-    }
-
     private function getPackageClassName(string $packageName): string
     {
         return Str::studly(Str::of($packageName)->explode('/')->pop());
@@ -110,12 +96,8 @@ class MicroserviceGenerator extends Command
 
     private function getPackageDirectory(string $packageName): string
     {
-        $dir = $this->ask('write microservice directory relative to project root', $this->getDefaultPackageDirectory($packageName));
-        if (!preg_match('/^(.+)\/([^\/]+)$/', $dir)) {
-            $this->error('package directory should match ^(.+)\/([^\/]+)$');
-            return $this->getPackageDirectory($packageName);
-        }
-        return $dir;
+        $name = Str::of($packageName)->explode('/');
+        return self::PACKAGE_DIRECTORY . '/' . $name[1];
     }
 
     private function createPackageDirectory(string $packageDirectory): void
@@ -137,16 +119,16 @@ class MicroserviceGenerator extends Command
         File::move($file->getPathname(), $file->getPath() . '/' . Str::replace(array_keys($placeholders), array_values($placeholders), $file->getFilename()));
     }
 
-    private function addPackageToComposer(string $packageName, string $packageDirectory, bool $isLocal): void
+    private function addPackageToComposer(string $packageName, string $packageDirectory): void
     {
-        if ($isLocal) {
-            $content = json_decode(File::get(base_path('composer.json')));
-            if (!collect($content->repositories ?? [])->where('url', $packageDirectory)->first()) {
-                $this->sanitizeRepositories($content);
-                $content->repositories[] = ['type' => 'path', 'url' => './' . $packageDirectory, 'package_name' => $packageName];
-                File::put(base_path('composer.json'), json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            }
+
+        $content = json_decode(File::get(base_path('composer.json')));
+        if (!collect($content->repositories ?? [])->where('url', $packageDirectory)->first()) {
+            $this->sanitizeRepositories($content);
+            $content->repositories[] = ['type' => 'path', 'url' => './' . $packageDirectory, 'package_name' => $packageName];
+            File::put(base_path('composer.json'), json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         }
+
         $command = array_merge($this->composer->findComposer(), ['require', $packageName]);
 
         $process = (new Process($command, base_path('')))->setTimeout(null);
@@ -209,18 +191,17 @@ class MicroserviceGenerator extends Command
     }
 
 
-
     private function addTestDirectoriesToPhpunitXmlFile(string $packageDirectory): void
     {
         $crawler = new Crawler(File::get(base_path('phpunit.xml')));
-        $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Unit"]')->each(function (Crawler $node) use ($crawler,$packageDirectory) {
-            $child = $crawler->getNode(0)->parentNode->createElement('directory', './'.$packageDirectory. '/tests/Unit');
-            $child->setAttribute('suffix','Test.php');
+        $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Unit"]')->each(function (Crawler $node) use ($crawler, $packageDirectory) {
+            $child = $crawler->getNode(0)->parentNode->createElement('directory', './' . $packageDirectory . '/tests/Unit');
+            $child->setAttribute('suffix', 'Test.php');
             $node->getNode(0)->appendChild($child);
         });
-        $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Feature"]')->each(function (Crawler $node) use ($crawler,$packageDirectory) {
-            $child = $crawler->getNode(0)->parentNode->createElement('directory', './'.$packageDirectory. '/tests/Feature');
-            $child->setAttribute('suffix','Test.php');
+        $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Feature"]')->each(function (Crawler $node) use ($crawler, $packageDirectory) {
+            $child = $crawler->getNode(0)->parentNode->createElement('directory', './' . $packageDirectory . '/tests/Feature');
+            $child->setAttribute('suffix', 'Test.php');
             $node->getNode(0)->appendChild($child);
         });
         $this->setPhpunitXmlFileContent($crawler->getNode(0)->ownerDocument->saveXML());
@@ -229,5 +210,32 @@ class MicroserviceGenerator extends Command
     private function getPhpunitXmlFileContent(): string
     {
         return File::get(base_path('phpunit.xml'));
+    }
+
+
+    private function createPackage(
+        string $packageFullDirectory,
+        string $packageName,
+        string $packageVersion,
+        mixed  $packageDescription,
+        string $packageNamespace,
+        string $packageDirectory,
+    ): void
+    {
+        $this->createPackageDirectory($packageFullDirectory);
+        $this->preparePackageFiles(
+            $packageFullDirectory,
+            [
+                '{{PACKAGE_COMPOSER_NAME}}' => $packageName,
+                '{{PACKAGE_VERSION}}' => $packageVersion,
+                '{{PACKAGE_DESCRIPTION}}' => $packageDescription,
+                '{{PACKAGE_COMPOSER_NAMESPACE}}' => str_replace('\\', '\\\\', $packageNamespace),
+                '{{PACKAGE_NAMESPACE}}' => $packageNamespace,
+                '{{PACKAGE_CLASS_NAME}}' => $this->getPackageClassName($packageName),
+                '{{PACKAGE_FILE_NAME}}' => $this->getPackageFileName($packageName),
+            ]
+        );
+        $this->addPackageToComposer($packageName, $packageDirectory);
+        $this->addTestDirectoriesToPhpunitXmlFile($packageDirectory);
     }
 }
