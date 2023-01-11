@@ -36,7 +36,7 @@ class MicroserviceRemover extends Command
 
         try {
             $this->removePackageFromComposer($packageName);
-            $this->removeTestDirectoriesToPhpunitXmlFile($packageFullDirectory);
+            $this->removeTestDirectoriesToPhpunitXmlFile($packageDirectory);
             $this->deletePackageDirectory($packageFullDirectory);
             $this->composer->dumpAutoloads();
             $this->info('Microservice removed successfully');
