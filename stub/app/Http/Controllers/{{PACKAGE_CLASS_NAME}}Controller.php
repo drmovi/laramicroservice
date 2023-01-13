@@ -3,7 +3,7 @@
 namespace {{PACKAGE_NAMESPACE}}\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Auth\Http\Requests\IndexRequest;
+use {{{{PACKAGE_NAMESPACE}}}}\Http\Requests\IndexRequest;
 
 class {{PACKAGE_CLASS_NAME}}Controller extends Controller{
 
