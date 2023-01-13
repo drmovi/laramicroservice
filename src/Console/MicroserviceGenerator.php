@@ -14,7 +14,9 @@ use Symfony\Component\Process\Process;
 
 class MicroserviceGenerator extends Command
 {
-    use Package;
+    use Package {
+        getPackageName as baseGetPackageName;
+    }
 
     protected $signature = 'microservice:scaffold';
 
@@ -58,6 +60,17 @@ class MicroserviceGenerator extends Command
         }
 
 
+    }
+
+
+    private function getPackageName(): string
+    {
+        $packageName = $this->baseGetPackageName();
+        if (File::isDirectory($this->getPackageFullDirectory($this->getPackageDirectory($packageName)))) {
+            $this->error('The package already exists. Choose another name');
+            return $this->getPackageName();
+        }
+        return $packageName;
     }
 
 
@@ -142,6 +155,7 @@ class MicroserviceGenerator extends Command
         }
     }
 
+
     private function filterRepos(\stdClass $content, bool $existing): array
     {
         return collect($content->repositories ?? [])->filter(function ($repository) use ($existing) {
@@ -200,18 +214,18 @@ class MicroserviceGenerator extends Command
 
     private function getLaravelVersion(): string
     {
-        return floor((floatval($this->laravel->version()))). '.x';
+        return floor((floatval($this->laravel->version()))) . '.x';
     }
 
-    private function updateComposerFile(string $packageDirectory, string $laravelVersion):void
+    private function updateComposerFile(string $packageDirectory, string $laravelVersion): void
     {
-        $laravelComposer = Http::get(config('laramicroservice.laravel_repo_url') . '/'.$laravelVersion . '/composer.json')->throw()->json();
+        $laravelComposer = Http::get(config('laramicroservice.laravel_repo_url') . '/' . $laravelVersion . '/composer.json')->throw()->json();
         $packageComposerContent = json_decode(File::get(base_path($packageDirectory . '/composer.json')), true);
         $laravelComposer['keywords'] = [];
         $laravelComposer['description'] = '';
         $laravelComposer['autoload']['psr-4'] = [];
         $laravelComposer['autoload-dev']['psr-4'] = [];
-        $composerContent  = array_replace_recursive($laravelComposer,$packageComposerContent);
+        $composerContent = array_replace_recursive($laravelComposer, $packageComposerContent);
         File::put(base_path($packageDirectory . '/composer.json'), json_encode($composerContent, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 }
