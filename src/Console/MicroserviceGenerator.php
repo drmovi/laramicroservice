@@ -200,17 +200,12 @@ class MicroserviceGenerator extends Command
 
     private function getLaravelVersion(): string
     {
-        $version = (int) $this->ask('what\'s your microservice version?', config('laramicroservice.laravel_default_version'));
-        if (!$version) {
-            $this->error('version must be an integer');
-            return $this->getLaravelVersion();
-        }
-        return $version;
+        return floor((floatval($this->laravel->version()))). '.x';
     }
 
     private function updateComposerFile(string $packageDirectory, string $laravelVersion):void
     {
-        $laravelComposer = Http::get(config('laramicroservice.laravel_repo_url') . '/'.$laravelVersion . '.x/composer.json')->throw()->json();
+        $laravelComposer = Http::get(config('laramicroservice.laravel_repo_url') . '/'.$laravelVersion . '/composer.json')->throw()->json();
         $packageComposerContent = json_decode(File::get(base_path($packageDirectory . '/composer.json')), true);
         $laravelComposer['keywords'] = [];
         $laravelComposer['description'] = '';
