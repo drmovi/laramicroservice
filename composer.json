@@ -1,7 +1,7 @@
 {
   "name": "drmovi/laramicroservice",
   "description": "Create laravel package scaffold",
-  "type": "package",
+  "type": "project",
   "require": {
     "php": ">=8.1",
     "laravel/framework": ">=9",
