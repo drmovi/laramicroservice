@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
 
-trait Package
+trait Microservice
 {
 
     private function getPhpunitXmlFileContent(): string
@@ -31,30 +31,30 @@ trait Package
         });
     }
 
-    private function deletePackageDirectory(string $packageFullDirectory): void
+    private function deleteMicroserviceDirectory(string $microserviceFullDirectory): void
     {
-        File::deleteDirectory($packageFullDirectory);
+        File::deleteDirectory($microserviceFullDirectory);
     }
 
-    private function getPackageDirectory(string $packageName): string
+    private function getMicroserviceDirectory(string $microserviceName): string
     {
-        $name = Str::of($packageName)->explode('/');
-        return config('laramicroservice.package_directory') . '/' . $name[1];
+        $name = Str::of($microserviceName)->explode('/');
+        return config('laramicroservice.microservice_directory') . '/' . $name[count($name) > 0 ? 1: 0];
     }
 
-    private function getPackageName(): string
+    private function getMicroserviceName(): string
     {
         $name = $this->ask('What is the composer name of your microservice?');
         if (!preg_match('{^[a-z0-9_.-]+/[a-z0-9_.-]+$}D', $name)) {
-            $this->error('Invalid composer name. It should be lowercase and have a vendor name, a forward slash, and a package name, matching: [a-z0-9_.-]+/[a-z0-9_.-]+');
-            return $this->getPackageName();
+            $this->error('Invalid composer name. It should be lowercase and have a vendor name, a forward slash, and a microservice name, matching: [a-z0-9_.-]+/[a-z0-9_.-]+');
+            return $this->getMicroserviceName();
         }
         return $name;
     }
 
-    private function getPackageFullDirectory(string $packageDirectory): string
+    private function getMicroserviceFullDirectory(string $microserviceDirectory): string
     {
-        return base_path($packageDirectory);
+        return base_path($microserviceDirectory);
     }
 
 

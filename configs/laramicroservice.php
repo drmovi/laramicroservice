@@ -1,6 +1,6 @@
 <?php
 return [
-    'package_directory' => 'microservices',
+    'microservice_directory' => 'microservices',
 
     'laravel_default_version' => '9',
 

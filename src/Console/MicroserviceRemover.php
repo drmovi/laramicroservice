@@ -2,7 +2,7 @@
 
 namespace Drmovi\LaraMicroservice\Console;
 
-use Drmovi\LaraMicroservice\Traits\Package;
+use Drmovi\LaraMicroservice\Traits\Microservice;
 use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
@@ -12,7 +12,7 @@ use Symfony\Component\Process\Process;
 class MicroserviceRemover extends Command
 {
 
-    use Package;
+    use Microservice;
 
     protected $signature = 'microservice:remove';
 
@@ -28,16 +28,16 @@ class MicroserviceRemover extends Command
 
     public function handle(): void
     {
-        [$packageName, $packageDirectory] = $this->getPackageData();
-        $packageFullDirectory = base_path($packageDirectory);
+        [$microserviceName, $microserviceDirectory] = $this->getMicroserviceData();
+        $microserviceFullDirectory = base_path($microserviceDirectory);
         $composerFileContent = File::get(base_path('composer.json'));
         $phpunitXmlFileContent = $this->getPhpunitXmlFileContent();
 
 
         try {
-            $this->removePackageFromComposer($packageName);
-            $this->removeTestDirectoriesToPhpunitXmlFile($packageDirectory);
-            $this->deletePackageDirectory($packageFullDirectory);
+            $this->removeMicroserviceFromComposer($microserviceName);
+            $this->removeTestDirectoriesToPhpunitXmlFile($microserviceDirectory);
+            $this->deleteMicroserviceDirectory($microserviceFullDirectory);
             $this->composer->dumpAutoloads();
             $this->info('Microservice removed successfully');
         } catch (\Exception $e) {
@@ -49,9 +49,9 @@ class MicroserviceRemover extends Command
         }
     }
 
-    private function removePackageFromComposer(string $packageName): void
+    private function removeMicroserviceFromComposer(string $microserviceName): void
     {
-        $command = array_merge($this->composer->findComposer(), ['remove', $packageName]);
+        $command = array_merge($this->composer->findComposer(), ['remove', $microserviceName]);
 
         $process = (new Process($command, base_path('')))->setTimeout(null);
 
@@ -60,16 +60,16 @@ class MicroserviceRemover extends Command
         });
 
         $content = json_decode(File::get(base_path('composer.json')), true);
-        $content['repositories'] = collect($content['repositories'] ?? [])->filter(fn($repo) => @$repo['package_name'] !== $packageName)->toArray();
+        $content['repositories'] = collect($content['repositories'] ?? [])->filter(fn($repo) => @$repo['microservice_name'] !== $microserviceName)->toArray();
         File::put(base_path('composer.json'), json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
     }
 
-    private function removeTestDirectoriesToPhpunitXmlFile(string $packageDirectory): void
+    private function removeTestDirectoriesToPhpunitXmlFile(string $microserviceDirectory): void
     {
         $crawler = new Crawler(File::get(base_path('phpunit.xml')));
-        $crawler->filterXPath('//phpunit/testsuites/testsuite//*')->each(function (Crawler $node) use ($packageDirectory) {
-            if (in_array($node->text(), ['./' . $packageDirectory . '/tests/Unit', './' . $packageDirectory . '/tests/Feature'])) {
+        $crawler->filterXPath('//phpunit/testsuites/testsuite//*')->each(function (Crawler $node) use ($microserviceDirectory) {
+            if (in_array($node->text(), ['./' . $microserviceDirectory . '/tests/Unit', './' . $microserviceDirectory . '/tests/Feature'])) {
                 $node->getNode(0)->parentNode->removeChild($node->getNode(0));
             };
         });
@@ -77,19 +77,29 @@ class MicroserviceRemover extends Command
     }
 
 
-    private function getPackageData(): array
+    private function getMicroserviceData(): array
     {
-        $packageName = $this->getPackageName();
-        $packageDirectory = $this->getPackageDirectory($packageName);
-        $this->info($this->getPackageFullDirectory($packageDirectory));
-        if (!File::isDirectory($this->getPackageFullDirectory($packageDirectory))) {
+        $microserviceName = $this->getMicroserviceMainFolderName();
+        $microserviceDirectory = $this->getMicroserviceDirectory($microserviceName);
+        $this->info($this->getMicroserviceFullDirectory($microserviceDirectory));
+        if (!File::isDirectory($this->getMicroserviceFullDirectory($microserviceDirectory))) {
             $this->error('Microservice not found');
-            return $this->getPackageData();
+            return $this->getMicroserviceData();
         }
         return [
-            $packageName,
-            $packageDirectory
+            $microserviceName,
+            $microserviceDirectory
         ];
+    }
+
+    private function getMicroserviceMainFolderName()
+    {
+        $name = $this->ask('What is the folder name of your microservice?');
+        if(!$name){
+            $this->error('Microservice name is required');
+            return $this->getMicroserviceMainFolderName();
+        }
+        return $name;
     }
 
 }
