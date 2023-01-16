@@ -81,7 +81,7 @@ class MicroserviceRemover extends Command
     {
         $microserviceName = $this->getMicroserviceMainFolderName();
         $microserviceDirectory = $this->getMicroserviceDirectory($microserviceName);
-        $this->info($this->getMicroserviceFullDirectory($microserviceDirectory));
+        $this->info($this->getMicroservicelDirectory($microserviceDirectory));
         if (!File::isDirectory($this->getMicroserviceFullDirectory($microserviceDirectory))) {
             $this->error('Microservice not found');
             return $this->getMicroserviceData();
