@@ -2,10 +2,12 @@
 
 namespace Drmovi\LaraMicroservice\Console;
 
+use Composer\Console\Application;
 use Drmovi\LaraMicroservice\Traits\Microservice;
 use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Process\Process;
 
@@ -28,15 +30,18 @@ class MicroserviceRemover extends Command
 
     public function handle(): void
     {
-        [$microserviceName, $microserviceDirectory] = $this->getMicroserviceData();
-        $microserviceFullDirectory = base_path($microserviceDirectory);
+        [$microserviceName, $microserviceRelativeDirectory] = $this->getMicroserviceData();
+        $microserviceRelativeDir = $this->getMicroserviceDirectory($microserviceName);
+        $microserviceFullDirectory = base_path($microserviceRelativeDirectory);
         $composerFileContent = File::get(base_path('composer.json'));
         $phpunitXmlFileContent = $this->getPhpunitXmlFileContent();
+        $microserviceComposerFileContent = json_decode(File::get($microserviceFullDirectory . '/composer.json'), true);
+        $composerPackageName = $microserviceComposerFileContent['name'];
 
 
         try {
-            $this->removeMicroserviceFromComposer($microserviceName);
-            $this->removeTestDirectoriesToPhpunitXmlFile($microserviceDirectory);
+            $this->removeMicroserviceFromComposer($composerPackageName, $microserviceRelativeDir);
+            $this->removeTestDirectoriesToPhpunitXmlFile($microserviceRelativeDirectory);
             $this->deleteMicroserviceDirectory($microserviceFullDirectory);
             $this->composer->dumpAutoloads();
             $this->info('Microservice removed successfully');
@@ -49,18 +54,17 @@ class MicroserviceRemover extends Command
         }
     }
 
-    private function removeMicroserviceFromComposer(string $microserviceName): void
+    private function removeMicroserviceFromComposer(string $composerMicroserviceName, string $microserviceRelativePath): void
     {
-        $command = array_merge($this->composer->findComposer(), ['remove', $microserviceName]);
-
-        $process = (new Process($command, base_path('')))->setTimeout(null);
-
-        $process->run(function (string $type, string $data) {
-            $this->info($data);
-        });
+        $application = new Application();
+        $application->setAutoExit(false);
+        $result = $application->run(new ArgvInput(['composer', 'remove', $composerMicroserviceName, '--no-interaction']), $this->output);
+        if ($result > 0) {
+            throw new \Exception('Error while adding microservice to composer');
+        }
 
         $content = json_decode(File::get(base_path('composer.json')), true);
-        $content['repositories'] = collect($content['repositories'] ?? [])->filter(fn($repo) => @$repo['microservice_name'] !== $microserviceName)->toArray();
+        $content['repositories'] = collect($content['repositories'] ?? [])->filter(fn($repo) => $repo['url'] !== './' . $microserviceRelativePath)->toArray();
         File::put(base_path('composer.json'), json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
     }
@@ -81,7 +85,7 @@ class MicroserviceRemover extends Command
     {
         $microserviceName = $this->getMicroserviceMainFolderName();
         $microserviceDirectory = $this->getMicroserviceDirectory($microserviceName);
-        $this->info($this->getMicroservicelDirectory($microserviceDirectory));
+        $this->info($this->getMicroserviceDirectory($microserviceDirectory));
         if (!File::isDirectory($this->getMicroserviceFullDirectory($microserviceDirectory))) {
             $this->error('Microservice not found');
             return $this->getMicroserviceData();
@@ -95,7 +99,7 @@ class MicroserviceRemover extends Command
     private function getMicroserviceMainFolderName()
     {
         $name = $this->ask('What is the folder name of your microservice?');
-        if(!$name){
+        if (!$name) {
             $this->error('Microservice name is required');
             return $this->getMicroserviceMainFolderName();
         }

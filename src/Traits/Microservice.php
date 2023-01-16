@@ -38,8 +38,8 @@ trait Microservice
 
     private function getMicroserviceDirectory(string $microserviceName): string
     {
-        $name = Str::of($microserviceName)->explode('/');
-        return config('laramicroservice.microservice_directory') . '/' . $name[count($name) > 0 ? 1: 0];
+        $name = explode('/', $microserviceName);
+        return config('laramicroservice.microservice_directory') . '/' . $name[count($name) > 1 ? 1: 0];
     }
 
     private function getMicroserviceName(): string

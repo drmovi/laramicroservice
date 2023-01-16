@@ -2,15 +2,16 @@
 
 namespace Drmovi\LaraMicroservice\Console;
 
+use Composer\Console\Application;
 use Drmovi\LaraMicroservice\Traits\Microservice;
 use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Finder\SplFileInfo;
-use Symfony\Component\Process\Process;
 
 class MicroserviceGenerator extends Command
 {
@@ -121,50 +122,25 @@ class MicroserviceGenerator extends Command
         File::move($file->getPathname(), $file->getPath() . '/' . Str::replace(array_keys($placeholders), array_values($placeholders), $file->getFilename()));
     }
 
-    private function addMicroserviceToComposer(string $microserviceName, string $microserviceDirectory): void
+    private function addMicroserviceToComposer(string $composerMicroserviceName, string $microserviceDirectory): void
     {
 
         $content = json_decode(File::get(base_path('composer.json')));
         if (!collect($content->repositories ?? [])->where('url', $microserviceDirectory)->first()) {
-            $this->sanitizeRepositories($content);
-            $content->repositories[] = ['type' => 'path', 'url' => './' . $microserviceDirectory, 'microservice_name' => $microserviceName];
+            $content->repositories[] = ['type' => 'path', 'url' => './' . $microserviceDirectory];
             File::put(base_path('composer.json'), json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         }
-
-        $command = array_merge($this->composer->findComposer(), ['require', $microserviceName]);
-
-        $process = (new Process($command, base_path('')))->setTimeout(null);
-
-        $process->run(function (string $type, string $data) {
-            $this->info($data);
-        });
+        $application = new Application();
+        $application->setAutoExit(false);
+        $result = $application->run(new ArgvInput(['composer', 'require', $composerMicroserviceName, '--no-interaction']), $this->output);
+        if ($result > 0) {
+            throw new \Exception('Error while adding microservice to composer');
+        }
     }
 
     private function getMicroserviceVersion(): string
     {
         return $this->ask('what\'s your microservice version?', '1.0.0');
-    }
-
-    private function sanitizeRepositories(\stdClass $content): void
-    {
-        $existingRepos = $this->filterRepos($content, true);
-        $noneExistingRepos = $this->filterRepos($content, false);
-        $content->repositories = $existingRepos;
-        foreach ($noneExistingRepos as $repo) {
-            unset($content->require->{$repo->microservice_name});
-        }
-    }
-
-
-    private function filterRepos(\stdClass $content, bool $existing): array
-    {
-        return collect($content->repositories ?? [])->filter(function ($repository) use ($existing) {
-            if ($repository->type !== 'path') {
-                return true;
-            }
-            $isDir = File::isDirectory(Str::startsWith($repository->url, './') ? base_path($repository->url) : $repository->url);
-            return $existing ? $isDir : !$isDir;
-        })->toArray();
     }
 
     private function addTestDirectoriesToPhpunitXmlFile(string $microserviceDirectory): void
