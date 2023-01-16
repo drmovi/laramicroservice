@@ -1,6 +1,6 @@
 <?php
 
-namespace {{PACKAGE_NAMESPACE}}\Tests\Feature;
+namespace {{PROJECT_NAMESPACE}}\Tests\Feature;
 
 use Tests\TestCase;
 

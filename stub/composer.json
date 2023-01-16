@@ -1,8 +1,8 @@
 {
-  "name": "{{PACKAGE_COMPOSER_NAME}}",
+  "name": "{{PROJECT_COMPOSER_NAME}}",
   "type": "package",
-  "version": "{{PACKAGE_VERSION}}",
-  "description": "{{PACKAGE_DESCRIPTION}}",
+  "version": "{{PROJECT_VERSION}}",
+  "description": "{{PROJECT_DESCRIPTION}}",
   "license": "MIT",
   "require": {
     "php": "^8.0.2",
@@ -11,24 +11,24 @@
   },
   "autoload": {
     "psr-4": {
-      "{{PACKAGE_COMPOSER_NAMESPACE}}\\": "app/",
-      "{{PACKAGE_COMPOSER_NAMESPACE}}\\Database\\Factories\\": "database/factories/",
-      "{{PACKAGE_COMPOSER_NAMESPACE}}\\Database\\Seeders\\": "database/seeders/"
+      "{{PROJECT_COMPOSER_NAMESPACE}}\\": "app/",
+      "{{PROJECT_COMPOSER_NAMESPACE}}\\Database\\Factories\\": "database/factories/",
+      "{{PROJECT_COMPOSER_NAMESPACE}}\\Database\\Seeders\\": "database/seeders/"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-        "{{PACKAGE_COMPOSER_NAMESPACE}}\\Providers\\{{PACKAGE_CLASS_NAME}}ServiceProvider",
-        "{{PACKAGE_COMPOSER_NAMESPACE}}\\Providers\\RouteServiceProvider",
-        "{{PACKAGE_COMPOSER_NAMESPACE}}\\Providers\\EventServiceProvider",
-        "{{PACKAGE_COMPOSER_NAMESPACE}}\\Providers\\ConsoleServiceProvider"
+        "{{PROJECT_COMPOSER_NAMESPACE}}\\Providers\\{{PROJECT_CLASS_NAME}}ServiceProvider",
+        "{{PROJECT_COMPOSER_NAMESPACE}}\\Providers\\RouteServiceProvider",
+        "{{PROJECT_COMPOSER_NAMESPACE}}\\Providers\\EventServiceProvider",
+        "{{PROJECT_COMPOSER_NAMESPACE}}\\Providers\\ConsoleServiceProvider"
       ]
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "{{PACKAGE_COMPOSER_NAMESPACE}}\\Tests\\": "tests/"
+      "{{PROJECT_COMPOSER_NAMESPACE}}\\Tests\\": "tests/"
     }
   },
   "minimum-stability": "dev",

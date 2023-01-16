@@ -198,13 +198,13 @@ class MicroserviceGenerator extends Command
         $this->preparePackageFiles(
             $packageFullDirectory,
             [
-                '{{PACKAGE_COMPOSER_NAME}}' => $packageName,
-                '{{PACKAGE_VERSION}}' => $packageVersion,
-                '{{PACKAGE_DESCRIPTION}}' => $packageDescription,
-                '{{PACKAGE_COMPOSER_NAMESPACE}}' => str_replace('\\', '\\\\', $packageNamespace),
-                '{{PACKAGE_NAMESPACE}}' => $packageNamespace,
-                '{{PACKAGE_CLASS_NAME}}' => $this->getPackageClassName($packageName),
-                '{{PACKAGE_FILE_NAME}}' => $this->getPackageFileName($packageName),
+                '{{PROJECT_COMPOSER_NAME}}' => $packageName,
+                '{{PROJECT_VERSION}}' => $packageVersion,
+                '{{PROJECT_DESCRIPTION}}' => $packageDescription,
+                '{{PROJECT_COMPOSER_NAMESPACE}}' => str_replace('\\', '\\\\', $packageNamespace),
+                '{{PROJECT_NAMESPACE}}' => $packageNamespace,
+                '{{PROJECT_CLASS_NAME}}' => $this->getPackageClassName($packageName),
+                '{{PROJECT_FILE_NAME}}' => $this->getPackageFileName($packageName),
             ]
         );
         $this->updateComposerFile($packageDirectory, $laravelVersion);
