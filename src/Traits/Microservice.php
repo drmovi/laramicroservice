@@ -2,8 +2,10 @@
 
 namespace Drmovi\LaraMicroservice\Traits;
 
+use Composer\Console\Application;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Process\Process;
 
 trait Microservice
@@ -19,9 +21,10 @@ trait Microservice
         File::put(base_path('phpunit.xml'), $content);
     }
 
-    private function restoreComposerFile(string $composerFileContent): void
+    private function restoreComposerFile(string $composerFileContent, string $composerLockFileContent): void
     {
         File::put(base_path('composer.json'), $composerFileContent);
+        File::put(base_path('composer.lock'), $composerLockFileContent);
         $command = array_merge($this->composer->findComposer(), ['install']);
 
         $process = (new Process($command, base_path()))->setTimeout(null);
@@ -39,7 +42,7 @@ trait Microservice
     private function getMicroserviceDirectory(string $microserviceName): string
     {
         $name = explode('/', $microserviceName);
-        return config('laramicroservice.microservice_directory') . '/' . $name[count($name) > 1 ? 1: 0];
+        return config('laramicroservice.microservice_directory') . '/' . $name[count($name) > 1 ? 1 : 0];
     }
 
     private function getMicroserviceName(): string
@@ -57,5 +60,23 @@ trait Microservice
         return base_path($microserviceDirectory);
     }
 
+    private function getSharedPackageDirectory(): string
+    {
+        return config('laramicroservice.microservice_directory') . '/' . config('laramicroservice.microservice_shared_package_name');
+    }
 
+    private function getMicroserviceClassName(string $microserviceName): string
+    {
+        return Str::studly(Str::of($microserviceName)->explode('/')->pop());
+    }
+
+    private function composerUpdate(): void
+    {
+        $application = new Application();
+        $application->setAutoExit(false);
+        $result = $application->run(new ArgvInput(['composer', 'update', '--no-interaction']), $this->output);
+        if ($result > 0) {
+            throw new \Exception('Error while running composer install');
+        }
+    }
 }

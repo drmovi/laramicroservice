@@ -2,14 +2,11 @@
 
 namespace Drmovi\LaraMicroservice\Console;
 
-use Composer\Console\Application;
 use Drmovi\LaraMicroservice\Traits\Microservice;
 use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\DomCrawler\Crawler;
-use Symfony\Component\Process\Process;
 
 class MicroserviceRemover extends Command
 {
@@ -30,25 +27,27 @@ class MicroserviceRemover extends Command
 
     public function handle(): void
     {
+
         [$microserviceName, $microserviceRelativeDirectory] = $this->getMicroserviceData();
         $microserviceRelativeDir = $this->getMicroserviceDirectory($microserviceName);
         $microserviceFullDirectory = base_path($microserviceRelativeDirectory);
         $composerFileContent = File::get(base_path('composer.json'));
+        $composerLockFileContent = File::get(base_path('composer.lock'));
         $phpunitXmlFileContent = $this->getPhpunitXmlFileContent();
         $microserviceComposerFileContent = json_decode(File::get($microserviceFullDirectory . '/composer.json'), true);
         $composerPackageName = $microserviceComposerFileContent['name'];
-
-
+        $microserviceSharedDirectory = base_path($this->getSharedPackageDirectory() . '/services/' . $this->getMicroserviceClassName($microserviceName));
         try {
             $this->removeMicroserviceFromComposer($composerPackageName, $microserviceRelativeDir);
+            $this->composerUpdate();
             $this->removeTestDirectoriesToPhpunitXmlFile($microserviceRelativeDirectory);
             $this->deleteMicroserviceDirectory($microserviceFullDirectory);
-            $this->composer->dumpAutoloads();
+            $this->deleteMicroserviceSharedDirectory($microserviceSharedDirectory);
             $this->info('Microservice removed successfully');
         } catch (\Exception $e) {
             $this->error($e->getMessage());
             $this->info('Rolling back...');
-            $this->restoreComposerFile($composerFileContent);
+            $this->restoreComposerFile($composerFileContent, $composerLockFileContent);
             $this->setPhpunitXmlFileContent($phpunitXmlFileContent);
             $this->info('Rolling back completed.');
         }
@@ -56,17 +55,10 @@ class MicroserviceRemover extends Command
 
     private function removeMicroserviceFromComposer(string $composerMicroserviceName, string $microserviceRelativePath): void
     {
-        $application = new Application();
-        $application->setAutoExit(false);
-        $result = $application->run(new ArgvInput(['composer', 'remove', $composerMicroserviceName, '--no-interaction']), $this->output);
-        if ($result > 0) {
-            throw new \Exception('Error while adding microservice to composer');
-        }
-
         $content = json_decode(File::get(base_path('composer.json')), true);
+        unset($content['require'][$composerMicroserviceName]);
         $content['repositories'] = collect($content['repositories'] ?? [])->filter(fn($repo) => $repo['url'] !== './' . $microserviceRelativePath)->toArray();
         File::put(base_path('composer.json'), json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
     }
 
     private function removeTestDirectoriesToPhpunitXmlFile(string $microserviceDirectory): void
@@ -104,6 +96,11 @@ class MicroserviceRemover extends Command
             return $this->getMicroserviceMainFolderName();
         }
         return $name;
+    }
+
+    private function deleteMicroserviceSharedDirectory(string $path): void
+    {
+        File::deleteDirectory($path);
     }
 
 }

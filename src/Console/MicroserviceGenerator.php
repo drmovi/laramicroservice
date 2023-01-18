@@ -2,14 +2,12 @@
 
 namespace Drmovi\LaraMicroservice\Console;
 
-use Composer\Console\Application;
 use Drmovi\LaraMicroservice\Traits\Microservice;
 use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -39,8 +37,10 @@ class MicroserviceGenerator extends Command
         $microserviceDirectory = $this->getMicroserviceDirectory($microserviceName);
         $microserviceFullDirectory = $this->getMicroserviceFullDirectory($microserviceDirectory);
         $composerFileContent = File::get(base_path('composer.json'));
+        $composerLockFileContent = File::get(base_path('composer.lock'));
         $phpunitXmlFileContent = $this->getPhpunitXmlFileContent();
         $laravelVersion = $this->getLaravelVersion();
+        $sharedPackageDirectory = $this->getSharedPackageDirectory();
         try {
 
             $this->createMicroservice(
@@ -52,12 +52,16 @@ class MicroserviceGenerator extends Command
                 $microserviceDirectory,
                 $laravelVersion
             );
+            $this->createSharedEntries($sharedPackageDirectory, $microserviceName, $laravelVersion);
+            $this->composerUpdate();
+
         } catch (\Throwable $e) {
             $this->error($e->getMessage());
             $this->info('Rolling back...');
             $this->deleteMicroserviceDirectory($microserviceFullDirectory);
-            $this->restoreComposerFile($composerFileContent);
+            $this->restoreComposerFile($composerFileContent, $composerLockFileContent);
             $this->setPhpunitXmlFileContent($phpunitXmlFileContent);
+            $this->rollbackSharedMicroserviceFiles($sharedPackageDirectory, $microserviceName);
         }
 
 
@@ -92,11 +96,6 @@ class MicroserviceGenerator extends Command
 
     }
 
-    private function getMicroserviceClassName(string $microserviceName): string
-    {
-        return Str::studly(Str::of($microserviceName)->explode('/')->pop());
-    }
-
     private function getMicroserviceFileName(string $microserviceName): string
     {
         return Str::replace('_', '-', Str::kebab(Str::of($microserviceName)->explode('/')->pop()));
@@ -105,10 +104,10 @@ class MicroserviceGenerator extends Command
 
     private function createMicroserviceDirectory(string $microserviceDirectory): void
     {
-        File::copyDirectory(__DIR__ . '/../../stub', $microserviceDirectory);
+        File::copyDirectory(__DIR__ . '/../../stubs/microservice', $microserviceDirectory);
     }
 
-    private function prepareMicroserviceFiles(string $microserviceFullDirectory, array $placeholders): void
+    private function prepareDirectoryFiles(string $microserviceFullDirectory, array $placeholders): void
     {
         $files = File::allFiles($microserviceFullDirectory);
         foreach ($files as $file) {
@@ -122,19 +121,13 @@ class MicroserviceGenerator extends Command
         File::move($file->getPathname(), $file->getPath() . '/' . Str::replace(array_keys($placeholders), array_values($placeholders), $file->getFilename()));
     }
 
-    private function addMicroserviceToComposer(string $composerMicroserviceName, string $microserviceDirectory): void
+    private function addMicroserviceToComposer(string $composerMicroserviceName, string $microserviceDirectory, string $microserviceVersion): void
     {
-
         $content = json_decode(File::get(base_path('composer.json')));
         if (!collect($content->repositories ?? [])->where('url', $microserviceDirectory)->first()) {
             $content->repositories[] = ['type' => 'path', 'url' => './' . $microserviceDirectory];
+            $content->require->{$composerMicroserviceName} = $microserviceVersion;
             File::put(base_path('composer.json'), json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-        }
-        $application = new Application();
-        $application->setAutoExit(false);
-        $result = $application->run(new ArgvInput(['composer', 'require', $composerMicroserviceName, '--no-interaction']), $this->output);
-        if ($result > 0) {
-            throw new \Exception('Error while adding microservice to composer');
         }
     }
 
@@ -171,7 +164,7 @@ class MicroserviceGenerator extends Command
     ): void
     {
         $this->createMicroserviceDirectory($microserviceFullDirectory);
-        $this->prepareMicroserviceFiles(
+        $this->prepareDirectoryFiles(
             $microserviceFullDirectory,
             [
                 '{{PROJECT_COMPOSER_NAME}}' => $microserviceName,
@@ -184,7 +177,7 @@ class MicroserviceGenerator extends Command
             ]
         );
         $this->updateComposerFile($microserviceDirectory, $laravelVersion);
-        $this->addMicroserviceToComposer($microserviceName, $microserviceDirectory);
+        $this->addMicroserviceToComposer($microserviceName, $microserviceDirectory, $microserviceVersion);
         $this->addTestDirectoriesToPhpunitXmlFile($microserviceDirectory);
     }
 
@@ -203,5 +196,46 @@ class MicroserviceGenerator extends Command
         $laravelComposer['autoload-dev']['psr-4'] = [];
         $composerContent = array_replace_recursive($laravelComposer, $microserviceComposerContent);
         File::put(base_path($microserviceDirectory . '/composer.json'), json_encode($composerContent, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
+
+    private function createSharedEntries(string $sharedDirectory, string $microserviceName, string $laravelVersion): void
+    {
+        $sharedFullDirectory = base_path($sharedDirectory);
+        $sharedMicroserviceName = 'app/shared';
+        $sharedMicroserviceNamespace = 'App\Shared';
+        $sharedMicroserviceDescription = 'Shared package used in all microservices';
+        $sharedMicroserviceVersion = '1.0.0';
+        if (!File::isDirectory($sharedFullDirectory)) {
+            $this->createMicroservice(
+                $sharedFullDirectory,
+                $sharedMicroserviceName,
+                $sharedMicroserviceVersion,
+                $sharedMicroserviceDescription,
+                $sharedMicroserviceNamespace,
+                $sharedDirectory,
+                $laravelVersion
+            );
+            File::makeDirectory($sharedFullDirectory . '/services');
+            $sharedComposerFile = json_decode(File::get($sharedFullDirectory . '/composer.json'), true);
+            $sharedComposerFile['autoload']['psr-4'][$sharedMicroserviceNamespace . '\\Services\\'] = 'services/';
+            File::put($sharedFullDirectory . '/composer.json', json_encode($sharedComposerFile, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->addTestDirectoriesToPhpunitXmlFile($sharedDirectory);
+        }
+        File::copyDirectory(__DIR__ . '/../../stubs/shared/services', $sharedFullDirectory . '/services');
+        $microserviceClassName = $this->getMicroserviceClassName($microserviceName);
+        $shardMicroserviceFullPath = $sharedFullDirectory . '/services/' . $microserviceClassName;
+        File::move($sharedFullDirectory . '/services/{{PROJECT_CLASS_NAME}}', $shardMicroserviceFullPath);
+        $this->prepareDirectoryFiles($shardMicroserviceFullPath,
+            [
+                '{{PROJECT_CLASS_NAME}}' => $microserviceClassName,
+            ]
+        );
+
+    }
+
+    private function rollbackSharedMicroserviceFiles(string $sharedDirectory, string $microserviceClassName): void
+    {
+        File::deleteDirectory(base_path($sharedDirectory . '/services/{{PROJECT_CLASS_NAME}}'));
+        File::deleteDirectory(base_path($sharedDirectory . '/services/' . $microserviceClassName));
     }
 }
