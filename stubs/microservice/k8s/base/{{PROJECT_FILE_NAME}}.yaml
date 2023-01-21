@@ -1,0 +1,53 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: {{PROJECT_FILE_NAME}}
+  namespace: backend
+spec:
+  routes:
+    - conditions:
+        - prefix: /api/{{PROJECT_FILE_NAME}}
+      services:
+        - name: {{PROJECT_FILE_NAME}}
+          port: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{PROJECT_FILE_NAME}}
+  labels:
+    app: {{PROJECT_FILE_NAME}}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: {{PROJECT_FILE_NAME}}
+      labels:
+        app: {{PROJECT_FILE_NAME}}
+    spec:
+      containers:
+        - name: {{PROJECT_FILE_NAME}}
+          image: {{PROJECT_FILE_NAME}}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: {{PROJECT_FILE_NAME}}-config
+
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      app: {{PROJECT_FILE_NAME}}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{PROJECT_FILE_NAME}}
+  namespace: backend
+spec:
+  selector:
+    app: {{PROJECT_FILE_NAME}}
+  ports:
+    - port: 8080
+  type: ClusterIP
