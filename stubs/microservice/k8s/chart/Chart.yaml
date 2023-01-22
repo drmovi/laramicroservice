@@ -1,0 +1,4 @@
+apiVersion: v2
+name: {{PROJECT_FILE_NAME}}-microservice
+version: 1.0.0
+type: application

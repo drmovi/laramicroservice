@@ -10,4 +10,4 @@ commonLabels:
 configMapGenerator:
   - name: {{PROJECT_FILE_NAME}}-config
     envs:
-      - ./files/default-config.env
+      - ./files/.env

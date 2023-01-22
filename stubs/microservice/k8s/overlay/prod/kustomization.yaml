@@ -7,4 +7,4 @@ configMapGenerator:
   - name: {{PROJECT_FILE_NAME}}-config
     behavior: merge
     envs:
-      - ./files/prod-config.env
+      - ./files/.env

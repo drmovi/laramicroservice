@@ -1,0 +1,12 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  routes:
+    - conditions:
+        - prefix: /api/{{ .Values.name }}
+      services:
+        - name: {{ .Values.name }}
+          port: 80
