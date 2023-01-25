@@ -38,8 +38,7 @@ class MicroserviceRemover extends Command
         $composerPackageName = $microserviceComposerFileContent['name'];
         $microserviceSharedDirectory = base_path($this->getSharedPackageDirectory() . '/services/' . $this->getMicroserviceClassName($microserviceName));
         try {
-            $this->removeMicroserviceFromComposer($composerPackageName, $microserviceRelativeDir);
-            $this->composerUpdate();
+            $this->removeMicroserviceFromProjectRootComposer($microserviceName,$composerPackageName);
             $this->removeTestDirectoriesToPhpunitXmlFile($microserviceRelativeDirectory);
             $this->deleteMicroserviceDirectory($microserviceFullDirectory);
             $this->deleteMicroserviceSharedDirectory($microserviceSharedDirectory);
@@ -53,12 +52,19 @@ class MicroserviceRemover extends Command
         }
     }
 
-    private function removeMicroserviceFromComposer(string $composerMicroserviceName, string $microserviceRelativePath): void
+    private function removeMicroserviceFromProjectRootComposer(string $microserviceName, string $composerMicroservicePackageName): void
     {
-        $content = json_decode(File::get(base_path('composer.json')), true);
-        unset($content['require'][$composerMicroserviceName]);
-        $content['repositories'] = collect($content['repositories'] ?? [])->filter(fn($repo) => $repo['url'] !== './' . $microserviceRelativePath)->toArray();
-        File::put(base_path('composer.json'), json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $this->runComposerCommand([
+            'remove',
+            $composerMicroservicePackageName,
+            '--no-interaction',
+        ]);
+        $this->runComposerCommand([
+            'config',
+            'repositories.' . $microserviceName,
+            '--unset',
+            '--no-interaction',
+        ]);
     }
 
     private function removeTestDirectoriesToPhpunitXmlFile(string $microserviceDirectory): void

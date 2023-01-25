@@ -6,6 +6,7 @@ use Composer\Console\Application;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Process\Process;
 
 trait Microservice
@@ -45,12 +46,12 @@ trait Microservice
         return config('laramicroservice.microservice_directory') . '/' . $name[count($name) > 1 ? 1 : 0];
     }
 
-    private function getMicroserviceName(): string
+    private function getComposerPackageName(): string
     {
         $name = $this->ask('What is the composer name of your microservice?');
         if (!preg_match('{^[a-z0-9_.-]+/[a-z0-9_.-]+$}D', $name)) {
             $this->error('Invalid composer name. It should be lowercase and have a vendor name, a forward slash, and a microservice name, matching: [a-z0-9_.-]+/[a-z0-9_.-]+');
-            return $this->getMicroserviceName();
+            return $this->getComposerPackageName();
         }
         return $name;
     }
@@ -70,13 +71,34 @@ trait Microservice
         return Str::studly(Str::of($microserviceName)->explode('/')->pop());
     }
 
-    private function composerUpdate(): void
+    private function runComposerCommand(array $input = []): void
     {
         $application = new Application();
         $application->setAutoExit(false);
-        $result = $application->run(new ArgvInput(['composer', 'update', '--no-interaction']), $this->output);
+        $result = $application->run(new ArgvInput(['composer',...$input]), $this->output);
         if ($result > 0) {
             throw new \Exception('Error while running composer install');
         }
+    }
+
+    private function getMicroserviceName(string $composerPackageName): string
+    {
+        return Str::of($composerPackageName)->explode('/')->pop();
+    }
+
+    private function addTestDirectoriesToPhpunitXmlFile(string $microserviceDirectory): void
+    {
+        $crawler = new Crawler(File::get(base_path('phpunit.xml')));
+        $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Unit"]')->each(function (Crawler $node) use ($crawler, $microserviceDirectory) {
+            $child = $crawler->getNode(0)->parentNode->createElement('directory', './' . $microserviceDirectory . '/tests/Unit');
+            $child->setAttribute('suffix', 'Test.php');
+            $node->getNode(0)->appendChild($child);
+        });
+        $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="Feature"]')->each(function (Crawler $node) use ($crawler, $microserviceDirectory) {
+            $child = $crawler->getNode(0)->parentNode->createElement('directory', './' . $microserviceDirectory . '/tests/Feature');
+            $child->setAttribute('suffix', 'Test.php');
+            $node->getNode(0)->appendChild($child);
+        });
+        $this->setPhpunitXmlFileContent($crawler->getNode(0)->ownerDocument->saveXML());
     }
 }
