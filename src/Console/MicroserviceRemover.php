@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\Yaml\Yaml;
 
 class MicroserviceRemover extends Command
 {
@@ -37,10 +38,12 @@ class MicroserviceRemover extends Command
         $microserviceComposerFileContent = json_decode(File::get($microserviceFullDirectory . '/composer.json'), true);
         $composerPackageName = $microserviceComposerFileContent['name'];
         $microserviceSharedDirectory = base_path($this->getSharedPackageDirectory() . '/services/' . $this->getMicroserviceClassName($microserviceName));
+        $skaffoldFileContent = File::get(base_path('skaffold.yaml'));
         try {
-            $this->removeMicroserviceFromProjectRootComposer($microserviceName,$composerPackageName);
+            $this->removeMicroserviceFromProjectRootComposer($microserviceName, $composerPackageName);
             $this->removeTestDirectoriesToPhpunitXmlFile($microserviceRelativeDirectory);
             $this->deleteMicroserviceDirectory($microserviceFullDirectory);
+            $this->removeDevopsEntry($microserviceRelativeDir);
             $this->deleteMicroserviceSharedDirectory($microserviceSharedDirectory);
             $this->info('Microservice removed successfully');
         } catch (\Exception $e) {
@@ -48,6 +51,7 @@ class MicroserviceRemover extends Command
             $this->info('Rolling back...');
             $this->restoreComposerFile($composerFileContent, $composerLockFileContent);
             $this->setPhpunitXmlFileContent($phpunitXmlFileContent);
+            File::put(base_path('skaffold.yaml'), $skaffoldFileContent);
             $this->info('Rolling back completed.');
         }
     }
@@ -107,6 +111,13 @@ class MicroserviceRemover extends Command
     private function deleteMicroserviceSharedDirectory(string $path): void
     {
         File::deleteDirectory($path);
+    }
+
+    private function removeDevopsEntry(string $microserviceRelativeDir): void
+    {
+        $data = Yaml::parseFile(base_path('skaffold.yaml'));
+        $data['requires'] = array_filter($data['requires'], fn($key, $value) => $value['path'] !== "./$microserviceRelativeDir/k8s/skaffold.yaml", ARRAY_FILTER_USE_BOTH);
+        File::put(base_path('skaffold.yaml'), Yaml::dump($data));
     }
 
 }

@@ -8,6 +8,7 @@ use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Yaml\Yaml;
 
 class MicroserviceGenerator extends Command
 {
@@ -51,6 +52,7 @@ class MicroserviceGenerator extends Command
                 $microserviceDirectory,
             );
             $this->createSharedEntries($sharedPackageDirectory, $microserviceComposerPackageName);
+            $this->createDevopsFiles($microserviceDirectory);
 
         } catch (\Throwable $e) {
             $this->error($e->getMessage());
@@ -190,6 +192,10 @@ class MicroserviceGenerator extends Command
             $sharedComposerFile = json_decode(File::get($sharedFullDirectory . '/composer.json'), true);
             $sharedComposerFile['autoload']['psr-4'][$sharedMicroserviceNamespace . '\\Services\\'] = 'services/';
             File::put($sharedFullDirectory . '/composer.json', json_encode($sharedComposerFile, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            File::deleteDirectory($sharedFullDirectory . '/k8s');
+            File::copyDirectory(__DIR__ . '/../../stubs/shared/app', $sharedFullDirectory . '/app');
+            File::copyDirectory(__DIR__ . '/../../stubs/shared/routes', $sharedFullDirectory . '/routes');
+            $this->prepareDirectoryFiles($sharedFullDirectory, ['{{PROJECT_NAMESPACE}}' => $sharedMicroserviceNamespace]);
         }
         File::copyDirectory(__DIR__ . '/../../stubs/shared/services', $sharedFullDirectory . '/services');
         $microserviceClassName = $this->getMicroserviceClassName($microserviceComposerPackageName);
@@ -206,5 +212,15 @@ class MicroserviceGenerator extends Command
     {
         File::deleteDirectory(base_path($sharedDirectory . '/services/{{PROJECT_CLASS_NAME}}'));
         File::deleteDirectory(base_path($sharedDirectory . '/services/' . $microserviceClassName));
+    }
+
+    private function createDevopsFiles(string $microserviceDirectory): void
+    {
+        if(!File::exists(base_path('Dockerfile'))) {
+            File::copyDirectory(__DIR__ . '/../../stubs/project', base_path());
+        }
+        $data = Yaml::parseFile(base_path('skaffold.yaml'));
+        $data['requires'][] = ['path' => "./$microserviceDirectory/k8s/skaffold.yaml"];
+        File::put(base_path('skaffold.yaml'), Yaml::dump($data));
     }
 }
