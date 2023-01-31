@@ -1,11 +1,11 @@
-## Laravel Microservice Generator
+## PHP Package Generator
 
 ### Idea
 
-Generate new package as a microservice inside laravel project
+Generate new package for various frameworks.
 
 ### Usage
 
 ```
-php artisan microservice:scaffold
+vendor/bin/dpg new:package
 ```

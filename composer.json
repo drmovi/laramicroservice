@@ -1,18 +1,19 @@
 {
-  "name": "drmovi/php-microservice-generator",
+  "name": "drmovi/php-package-generator",
   "description": "Create laravel package scaffold",
   "type": "project",
   "require": {
     "php": ">=8.1",
-    "laravel/framework": ">=9",
     "symfony/dom-crawler": "^6.2",
     "composer/composer": "^2.5",
-    "symfony/yaml": "^6.2"
+    "symfony/yaml": "^6.2",
+    "symfony/console": "^6.2"
   },
+  "bin": ["dpg"],
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "Drmovi\\LaraMicroservice\\": "src/"
+      "Drmovi\\PackageGenerator\\": "src/"
     }
   },
   "authors": [
@@ -21,13 +22,5 @@
       "email": "drmovi000@gmail.com"
     }
   ],
-  "minimum-stability": "stable",
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Drmovi\\LaraMicroservice\\Providers\\LaraMicroserviceServiceProvider",
-        "Drmovi\\LaraMicroservice\\Providers\\ConsoleServiceProvider"
-      ]
-    }
-  }
+  "minimum-stability": "stable"
 }
