@@ -33,10 +33,10 @@ class ComposerFile implements State
         file_put_contents($this->path . DIRECTORY_SEPARATOR . 'composer.json', json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
-    public function addPsr4Namespace(string $namespace, string $path)
+    public function addPsr4Namespace(string $namespace, string $path, bool $dev = false)
     {
         $data = $this->getContent();
-        $data['autoload']['psr-4'][$namespace] = $path;
+        $data['autoload' . $dev ? '-dev' : '']['psr-4'][$namespace] = $path;
         $this->setContent($data);
     }
 }

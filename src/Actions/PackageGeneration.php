@@ -19,6 +19,11 @@ class PackageGeneration implements Operation
     private string $packageNamespace;
     private string $packageName;
     private string $packageRelativePath;
+    private string $sharedPackageName;
+    private string $sharedPackageRelativePath;
+    private string $sharedPackageAbsolutePath;
+    private string $sharedPackageComposerName;
+    private string $sharedPackageNamespace;
 
     public function __construct(
         private readonly string          $packageComposerName,
@@ -31,6 +36,14 @@ class PackageGeneration implements Operation
         $this->packageRelativePath = $this->configs->getPackagePath() . DIRECTORY_SEPARATOR . $this->packageName;
         $this->packageAbsolutePath = getcwd() . DIRECTORY_SEPARATOR . $this->packageRelativePath;
         $this->packageNamespace = $this->getPackageNamespace($packageComposerName);
+
+        $this->sharedPackageName = 'shared';
+        $this->sharedPackageRelativePath = $this->configs->getPackagePath() . DIRECTORY_SEPARATOR . $this->sharedPackageName;
+        $this->sharedPackageAbsolutePath = getcwd() . DIRECTORY_SEPARATOR . $this->sharedPackageRelativePath;
+        $this->sharedPackageComposerName = $this->configs->getVendorName() . '/' . $this->sharedPackageName;
+        $this->sharedPackageNamespace = $this->getPackageNamespace($this->sharedPackageComposerName);
+
+
         $this->packageOperation = (new FrameworkPackageOperationFactory())->make(
             framework: $this->configs->getFramework(),
             generatorArgs: [
@@ -53,8 +66,8 @@ class PackageGeneration implements Operation
 
     public function exec(): void
     {
-        $this->createMainPackage();
         $this->createSharedPackage();
+        $this->createMainPackage();
         $this->addPackageSharedFolderToSharedPackage();
         $this->packageOperation->exec();
     }
@@ -63,6 +76,7 @@ class PackageGeneration implements Operation
     {
         $this->rootComposerFile->rollback();
         FileUtil::removeDirectory($this->packageAbsolutePath);
+        FileUtil::removeDirectory($this->sharedPackageAbsolutePath . DIRECTORY_SEPARATOR . 'services' . DIRECTORY_SEPARATOR . ucwords($this->packageName));
         $this->packageOperation->rollback();
     }
 
@@ -142,47 +156,40 @@ class PackageGeneration implements Operation
 
     private function createSharedPackage(): void
     {
-        $packageName = 'shared';
-        $packageRelativePath = $this->configs->getPackagePath() . DIRECTORY_SEPARATOR . $packageName;
-        $packageAbsolutePath = getcwd() . DIRECTORY_SEPARATOR . $packageRelativePath;
-        $packageComposerName = $this->configs->getVendorName() . '/' . $packageName;
-        $packageNamespace = $this->getPackageNamespace($packageComposerName);
-        if (FileUtil::directoryExist($packageAbsolutePath)) {
+        if (FileUtil::directoryExist($this->sharedPackageAbsolutePath)) {
             return;
         }
         $this->createPackage(
-            destination: $packageAbsolutePath,
-            composerName: $packageComposerName,
-            packageNamespace: $packageNamespace,
-            packageName: $packageName,
-            packageRelativePath: $packageRelativePath,
+            destination: $this->sharedPackageAbsolutePath,
+            composerName: $this->sharedPackageComposerName,
+            packageNamespace: $this->sharedPackageNamespace,
+            packageName: $this->sharedPackageName,
+            packageRelativePath: $this->sharedPackageRelativePath,
             beforeComposerCommand: [$this, 'addServicePsr4NamespaceToSharedPackageComposerFile']
         );
         $this->copyStubFiles(
             source: 'frameworks' . DIRECTORY_SEPARATOR . $this->configs->getFramework() . DIRECTORY_SEPARATOR . 'shared/app',
-            destination: $packageAbsolutePath . DIRECTORY_SEPARATOR . 'app',
-            composerName: $packageComposerName,
-            packageNamespace: $this->getPackageNamespace($packageComposerName),
-            packageName: $packageName
+            destination: $this->sharedPackageAbsolutePath . DIRECTORY_SEPARATOR . 'app',
+            composerName: $this->sharedPackageComposerName,
+            packageNamespace: $this->getPackageNamespace($this->sharedPackageComposerName),
+            packageName: $this->sharedPackageName
         );
         $this->copyStubFiles(
             source: 'frameworks' . DIRECTORY_SEPARATOR . $this->configs->getFramework() . DIRECTORY_SEPARATOR . 'shared/routes',
-            destination: $packageAbsolutePath . DIRECTORY_SEPARATOR . 'routes',
-            composerName: $packageComposerName,
-            packageNamespace: $this->getPackageNamespace($packageComposerName),
-            packageName: $packageName
+            destination: $this->sharedPackageAbsolutePath . DIRECTORY_SEPARATOR . 'routes',
+            composerName: $this->sharedPackageComposerName,
+            packageNamespace: $this->getPackageNamespace($this->sharedPackageComposerName),
+            packageName: $this->sharedPackageName
         );
     }
 
     private function addPackageSharedFolderToSharedPackage()
     {
-
-        $packageAbsolutePath = getcwd() . DIRECTORY_SEPARATOR . $this->configs->getPackagePath() . DIRECTORY_SEPARATOR . 'shared';
         $this->copyStubFiles(
             'frameworks' . DIRECTORY_SEPARATOR . $this->configs->getFramework() . DIRECTORY_SEPARATOR . 'shared/services',
-            destination: $packageAbsolutePath . DIRECTORY_SEPARATOR . 'services',
+            destination: $this->sharedPackageAbsolutePath . DIRECTORY_SEPARATOR . 'services',
             composerName: $this->packageComposerName,
-            packageNamespace: $this->getPackageNamespace($this->configs->getVendorName() . '/shared'),
+            packageNamespace: $this->sharedPackageNamespace,
             packageName: $this->packageName
         );
     }
