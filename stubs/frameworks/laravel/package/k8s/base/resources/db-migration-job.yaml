@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{PROJECT_FILE_NAME}}-db-migration
+  namespace: backend
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{PROJECT_FILE_NAME}}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: hooks-service-space-migration
+          image: hooks-service
+          env:
+          envFrom:
+            - configMapRef:
+                name: {{PROJECT_FILE_NAME}}-config
+          command: [ 'php', 'artisan', 'migrate', '--force' ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 400m
+              memory: 750Mi
+  backoffLimit: 1

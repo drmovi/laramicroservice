@@ -1,0 +1,33 @@
+{
+  "name": "{{PROJECT_COMPOSER_NAME}}",
+  "type": "package",
+  "version": "{{PROJECT_VERSION}}",
+  "description": "{{PROJECT_DESCRIPTION}}",
+  "license": "MIT",
+  "require": {
+  },
+  "autoload": {
+    "psr-4": {
+      "{{PROJECT_COMPOSER_NAMESPACE}}\\": "app/",
+      "{{PROJECT_COMPOSER_NAMESPACE}}\\Database\\Factories\\": "database/factories/",
+      "{{PROJECT_COMPOSER_NAMESPACE}}\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "{{PROJECT_COMPOSER_NAMESPACE}}\\Providers\\{{PROJECT_CLASS_NAME}}ServiceProvider",
+        "{{PROJECT_COMPOSER_NAMESPACE}}\\Providers\\RouteServiceProvider",
+        "{{PROJECT_COMPOSER_NAMESPACE}}\\Providers\\EventServiceProvider",
+        "{{PROJECT_COMPOSER_NAMESPACE}}\\Providers\\ConsoleServiceProvider"
+      ]
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "{{PROJECT_COMPOSER_NAMESPACE}}\\Tests\\": "tests/"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

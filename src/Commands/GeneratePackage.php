@@ -4,11 +4,14 @@ namespace Drmovi\PackageGenerator\Commands;
 
 use Composer\Console\Application;
 use Drmovi\PackageGenerator\Dtos\Configs;
+use Drmovi\PackageGenerator\Actions\PackageGeneration;
+use Drmovi\PackageGenerator\Services\ComposerService;
+use Drmovi\PackageGenerator\Utils\FileUtil;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'package:new',
@@ -18,34 +21,52 @@ use Symfony\Component\Console\Attribute\AsCommand;
 class GeneratePackage extends Command
 {
     private readonly Configs $configs;
-    private readonly Application $composer;
-
-    public function __construct(string $name = null)
-    {
-        parent::__construct($name);
-        $this->composer = new Application();
-        $this->configs = Configs::loadFromComposer($this->composer);
-    }
+    private readonly ComposerService $composer;
 
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $helper = $this->getHelper('question');
-        $packageComposerName = $this->getPackageComposerName($helper, $input, $output);
-        $output->writeln("<info>Package name: $packageComposerName</info>");
-
+        $io = new SymfonyStyle($input, $output);
+        $this->composer = new ComposerService($output);
+        $this->configs = Configs::loadFromComposer($this->composer->getApplication());
+        if (!($this->configs->getVendorName())) {
+            $io->error('Vendor name is not set in composer.json, add it to extra.monorepo.vendor_name');
+            return Command::FAILURE;
+        }
+        $packageComposerName = $this->getComposerPackageName($io);
+        $operation = new PackageGeneration(
+            packageComposerName: $packageComposerName,
+            configs: $this->configs,
+            composer: $this->composer,
+        );
+        try {
+            $operation->backup();
+            $operation->exec();
+        } catch (\Throwable $e) {
+            $operation->rollback();
+            $io->error($e->getMessage());
+            return Command::FAILURE;
+        }
+        $io->success('Package generated successfully!');
         return Command::SUCCESS;
     }
 
-    private function getPackageComposerName(mixed $helper, InputInterface $input, OutputInterface $output): string
+
+    private function getComposerPackageName(SymfonyStyle $io): string
     {
-        $namePrefix = $this->configs->getNamePrefix();
-        $regex = $namePrefix ? '/^[a-z_]+$/' :'/^[a-z]+\/[a-z0-9_]+$/';
-        $answer = $helper->ask($input, $output, new Question('Name of your package:', 'localhost'));
-        if (!preg_match($regex, $answer)) {
-            $output->writeln("<error>Invalid package name. It should match the following regex: $regex</error>");
-            return $this->getPackageComposerName($helper, $input, $output);
-        }
-        return $namePrefix ? $namePrefix . '/' . $answer : $answer;
+        return $io->ask('Name of your package', null, function ($answer) use ($io) {
+            $vendorName = $this->configs->getVendorName();
+            $regex = '/^[a-z_]+$/';
+            if (!preg_match($regex, $answer)) {
+                throw new \RuntimeException("Invalid package name. It should match the following regex: $regex");
+            }
+            if (FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $this->configs->getPackagePath() . DIRECTORY_SEPARATOR . $answer)) {
+                throw new \RuntimeException("Package with name $answer already exists !!");
+            }
+            $composerPackageName = $vendorName ? $vendorName . '/' . $answer : $answer;
+            $io->info("Package name: $composerPackageName");
+            return $composerPackageName;
+        });
     }
+
 }
