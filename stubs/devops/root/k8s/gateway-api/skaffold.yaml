@@ -1,0 +1,10 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+
+manifests:
+  rawYaml:
+    - ./definition.yaml
+
+
+deploy:
+  kubectl: {}

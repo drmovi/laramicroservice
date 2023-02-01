@@ -7,5 +7,6 @@ use Symfony\Component\Console\Application;
 
 $application = new Application();
 
-$application->add(new \Drmovi\PackageGenerator\Commands\GeneratePackage());
+$application->add(new \Drmovi\PackageGenerator\Commands\CreatePackageCommand());
+$application->add(new \Drmovi\PackageGenerator\Commands\DeletePackageCommand());
 $application->run();

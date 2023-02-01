@@ -1,0 +1,43 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+build:
+  artifacts:
+    - image: {{PROJECT_FILE_NAME}}
+      context: ../../../
+      docker:
+        dockerfile: ./Dockerfile
+        buildArgs:
+          MICROSERVICE: {{PROJECT_FILE_NAME}}
+      sync:
+        manual:
+
+deploy:
+  kubectl: {}
+
+profiles:
+  - name: local
+    patches:
+      - op: add
+        path: /build/artifacts/0/docker/buildArgs/APP_ENV
+        value: local
+      - op: add
+        path: /build/artifacts/0/sync/manual
+        value:
+          - src: './microservices/{{PROJECT_FILE_NAME}}/**'
+            dest: ./microservices/{{PROJECT_FILE_NAME}}/shared
+          - src: './microservices/shared/**'
+            dest: ./microservices/{{PROJECT_FILE_NAME}}/shared
+    manifests:
+      kustomize:
+        paths:
+          - ./overlay/local
+    deploy:
+      kubectl: {}
+
+
+  - name: prod
+    manifests:
+      kustomize:
+        paths:
+          - ./overlay/prod
+

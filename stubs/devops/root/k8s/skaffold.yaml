@@ -1,0 +1,7 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+
+requires:
+  - path: ./gateway-api/skaffold.yaml
+  - path: ./resources/skaffold.yaml
+  - path: ./istio/skaffold.yaml

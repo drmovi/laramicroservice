@@ -1,0 +1,4 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+requires:
+  - path: ./k8s/skaffold.yaml

@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{PROJECT_FILE_NAME}}-db-migration
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{PROJECT_FILE_NAME}}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: {{PROJECT_FILE_NAME}}-db-migration
+          image: {{PROJECT_FILE_NAME}}
+          envFrom:
+            - configMapRef:
+                name: {{PROJECT_FILE_NAME}}-config
+          command: [ 'php', 'artisan', 'migrate', '--force' ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 400m
+              memory: 750Mi
+  backoffLimit: 1

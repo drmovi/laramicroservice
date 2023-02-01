@@ -1,0 +1,25 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+
+requires:
+    - path: ./namespaces.yaml
+
+
+deploy:
+  helm:
+    releases:
+      - name: istio-base
+        repo: https://istio-release.storage.googleapis.com/charts
+        remoteChart: base
+        namespace: istio-system
+
+      - name: istio-istiod
+        repo: https://istio-release.storage.googleapis.com/charts
+        remoteChart: istiod
+        namespace: istio-system
+
+      - name: istio-ingress
+        repo: https://istio-release.storage.googleapis.com/charts
+        remoteChart: gateway
+        namespace: istio-system
+
