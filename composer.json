@@ -1,6 +1,6 @@
 {
-  "name": "drmovi/php-package-generator",
-  "description": "Create laravel package scaffold",
+  "name": "drmovi/package-generator",
+  "description": "Create a package scaffold for different frameworks",
   "type": "project",
   "require": {
     "php": ">=8.1",
