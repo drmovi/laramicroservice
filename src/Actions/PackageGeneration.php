@@ -5,6 +5,7 @@ namespace Drmovi\PackageGenerator\Actions;
 use Drmovi\PackageGenerator\Contracts\Operation;
 use Drmovi\PackageGenerator\Dtos\Configs;
 use Drmovi\PackageGenerator\Entities\ComposerFile;
+use Drmovi\PackageGenerator\Entities\PhpUnitXmlFile;
 use Drmovi\PackageGenerator\Enums\OperationTypes;
 use Drmovi\PackageGenerator\Factories\FrameworkPackageOperationFactory;
 use Drmovi\PackageGenerator\Services\ComposerService;
@@ -24,6 +25,7 @@ class PackageGeneration implements Operation
     private string $sharedPackageAbsolutePath;
     private string $sharedPackageComposerName;
     private string $sharedPackageNamespace;
+    private PhpUnitXmlFile $rootPhpunitXmlFile;
 
     public function __construct(
         private readonly string          $packageComposerName,
@@ -32,6 +34,7 @@ class PackageGeneration implements Operation
     )
     {
         $this->rootComposerFile = new ComposerFile(getcwd());
+        $this->rootPhpunitXmlFile = new PhpunitXmlFile(getcwd());
         $this->packageName = $this->getPackageName($packageComposerName);
         $this->packageRelativePath = $this->configs->getPackagePath() . DIRECTORY_SEPARATOR . $this->packageName;
         $this->packageAbsolutePath = getcwd() . DIRECTORY_SEPARATOR . $this->packageRelativePath;
@@ -62,6 +65,7 @@ class PackageGeneration implements Operation
     {
         $this->rootComposerFile->backup();
         $this->packageOperation->backup();
+        $this->rootPhpunitXmlFile->backup();
     }
 
     public function exec(): void
@@ -69,6 +73,7 @@ class PackageGeneration implements Operation
         $this->createSharedPackage();
         $this->createMainPackage();
         $this->addPackageSharedFolderToSharedPackage();
+        $this->rootPhpunitXmlFile->addTestDirectories($this->packageRelativePath);
         $this->packageOperation->exec();
     }
 
@@ -78,6 +83,7 @@ class PackageGeneration implements Operation
         FileUtil::removeDirectory($this->packageAbsolutePath);
         FileUtil::removeDirectory($this->sharedPackageAbsolutePath . DIRECTORY_SEPARATOR . 'services' . DIRECTORY_SEPARATOR . ucwords($this->packageName));
         $this->packageOperation->rollback();
+        $this->rootPhpunitXmlFile->rollback();
     }
 
     private function copyStubFiles(string $source, string $destination, string $composerName, string $packageNamespace, string $packageName): void
