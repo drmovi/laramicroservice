@@ -13,6 +13,7 @@ class DeletePackageAction extends PackageAction
 
     public function exec(): void
     {
+        $this->packageOperation->exec();
         $this->removePackageRefInRootSkaffoldYamlFile();
         $this->removePackageRefInPhpUnitXmlFile();
         $this->removePackageFromComposer();
@@ -49,7 +50,6 @@ class DeletePackageAction extends PackageAction
         $this->composer->runComposerCommand([
             'remove',
             $this->packageComposerName,
-            '--no-interaction',
         ]);
         $this->composer->runComposerCommand([
             'config',

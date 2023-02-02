@@ -18,6 +18,7 @@ class CreatePackageAction extends PackageAction
         $this->addPackageSharedFolderToSharedPackage();
         $this->addTestDirectoriesToPhpUnitXml();
         $this->createK8sFiles();
+        $this->packageOperation->exec();
     }
 
 

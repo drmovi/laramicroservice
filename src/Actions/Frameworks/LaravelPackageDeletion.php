@@ -5,6 +5,7 @@ namespace Drmovi\PackageGenerator\Actions\Frameworks;
 use Drmovi\PackageGenerator\Contracts\Operation;
 use Drmovi\PackageGenerator\Dtos\Configs;
 use Drmovi\PackageGenerator\Entities\ComposerFile;
+use Drmovi\PackageGenerator\Utils\FileUtil;
 
 class LaravelPackageDeletion implements Operation
 {
@@ -22,6 +23,7 @@ class LaravelPackageDeletion implements Operation
 
     public function exec(): void
     {
+        FileUtil::emptyDirectory($this->configs->getAppPath() . '/bootstrap/cache');
     }
 
     public function backup(): void

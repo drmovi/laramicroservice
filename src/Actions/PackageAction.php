@@ -96,7 +96,6 @@ abstract class PackageAction implements Operation
             $this->packageOperation->init();
         }
         $this->exec();
-        $this->packageOperation->exec();
     }
 
     abstract public function init(): void;

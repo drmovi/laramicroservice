@@ -7,15 +7,11 @@ class FileUtil
 
     public static function removeDirectory($dir): void
     {
-        if(!self::directoryExist($dir)) {
+        if (!self::directoryExist($dir)) {
             return;
         }
 
-        $files = array_diff(scandir($dir), ['.', '..']);
-
-        foreach ($files as $file) {
-            (is_dir("$dir/$file")) ? static::removeDirectory("$dir/$file") : unlink("$dir/$file");
-        }
+        self::emptyDirectory($dir);
 
         rmdir($dir);
 
@@ -53,5 +49,15 @@ class FileUtil
         $content = file_get_contents($sourceFile);
         $content = str_replace(array_keys($replacements), array_values($replacements), $content);
         file_put_contents($destinationFile, $content);
+    }
+
+    public static function emptyDirectory(string $dir): void
+    {
+
+        $files = array_diff(scandir($dir), ['.', '..']);
+
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? static::removeDirectory("$dir/$file") : unlink("$dir/$file");
+        }
     }
 }

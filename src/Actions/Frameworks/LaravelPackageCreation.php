@@ -57,6 +57,6 @@ class LaravelPackageCreation implements Operation
     private function generateDotEnv()
     {
         FileUtil::copyFile($this->configs->getAppPath() . '/.env.example', $this->configs->getAppPath() . '/.env',[]);
-        exec("php {$this->configs->getAppPath()}/artisan key:generate --ansi");
+        exec("php ./{$this->configs->getAppPath()}/artisan key:generate --ansi");
     }
 }
