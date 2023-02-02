@@ -55,13 +55,13 @@ class LaravelPackageCreation implements Operation
         ]);
     }
 
-    private function generateDotEnv()
+    private function generateDotEnv():void
     {
         FileUtil::copyFile($this->configs->getAppPath() . '/.env.example', $this->configs->getAppPath() . '/.env',[]);
         exec("php ./{$this->configs->getAppPath()}/artisan key:generate --ansi");
     }
 
-    private function addLaravelAutoloadMapping()
+    private function addLaravelAutoloadMapping():void
     {
         $this->rootComposerFile->addPsr4Namespace("Tests\\", "{$this->configs->getAppPath()}tests/", true);
     }
