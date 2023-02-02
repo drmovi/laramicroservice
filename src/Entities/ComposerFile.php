@@ -41,7 +41,7 @@ class ComposerFile implements State
     public function addPsr4Namespace(string $namespace, string $path, bool $dev = false)
     {
         $data = $this->getContent();
-        $data['autoload' . $dev ? '-dev' : '']['psr-4'][$namespace] = $path;
+        $data[$dev ? 'autoload-dev' : 'autoload']['psr-4'][$namespace] = $path;
         $this->setContent($data);
     }
 

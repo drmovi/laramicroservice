@@ -63,6 +63,6 @@ class LaravelPackageCreation implements Operation
 
     private function addLaravelAutoloadMapping():void
     {
-        $this->rootComposerFile->addPsr4Namespace("Tests\\", "{$this->configs->getAppPath()}tests/", true);
+        $this->rootComposerFile->addPsr4Namespace("Tests\\", "{$this->configs->getAppPath()}/tests/", true);
     }
 }
