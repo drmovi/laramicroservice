@@ -72,7 +72,7 @@ class LaravelPackageCreation implements Operation
 
     private function addAutoloadDev(): void
     {
-        $this->rootComposerFile->addPsr4Namespace($this->appComposerFile->getPsr4Namespace(), true);
+        $this->rootComposerFile->addPsr4Namespace($this->appComposerFile->getPsr4Namespace(null, true), true);
     }
 
     private function installDevDependencies(): void
