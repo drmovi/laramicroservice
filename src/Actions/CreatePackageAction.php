@@ -3,22 +3,22 @@
 namespace Drmovi\PackageGenerator\Actions;
 
 use Drmovi\PackageGenerator\Entities\ComposerFile;
+use Drmovi\PackageGenerator\Enums\OperationTypes;
 use Drmovi\PackageGenerator\Utils\FileUtil;
 
 class CreatePackageAction extends PackageAction
 {
 
 
+    protected OperationTypes $operationType = OperationTypes::PACKAGE_CREATION;
+
     public function exec(): void
     {
-        $this->createSharedPackage();
         $this->createMainPackage();
         $this->addPackageSharedFolderToSharedPackage();
         $this->addTestDirectoriesToPhpUnitXml();
         $this->createK8sFiles();
-        $this->packageOperation->exec();
     }
-
 
 
     private function copyStubFiles(string $source, string $destination, string $composerName, string $packageNamespace, string $packageName): void
@@ -36,8 +36,6 @@ class CreatePackageAction extends PackageAction
                 '{{PROJECT_FILE_NAME}}' => strtolower($packageName),
             ]);
     }
-
-
 
 
     private function createPackage(
@@ -68,8 +66,6 @@ class CreatePackageAction extends PackageAction
         $this->composer->runComposerCommand([
             'require',
             $composerName,
-            '--no-interaction',
-            '--no-install'
         ]);
     }
 
@@ -116,7 +112,7 @@ class CreatePackageAction extends PackageAction
     private function addPackageSharedFolderToSharedPackage()
     {
         $this->copyStubFiles(
-            'frameworks/' . $this->configs->getFramework()  . '/shared/services',
+            'frameworks/' . $this->configs->getFramework() . '/shared/services',
             destination: $this->sharedPackageAbsolutePath . '/services',
             composerName: $this->packageComposerName,
             packageNamespace: $this->sharedPackageNamespace,
@@ -146,12 +142,6 @@ class CreatePackageAction extends PackageAction
         if ($this->configs->getMode() !== 'microservice') {
             return;
         }
-        if (!FileUtil::directoryExist(getcwd() . '/k8s')) {
-            FileUtil::copyDirectory(
-                source: __DIR__ .'/../../stubs/devops/root',
-                destination: getcwd()
-            );
-        }
         $this->copyStubFiles(
             source: 'devops/package/k8s',
             destination: $this->packageAbsolutePath . '/k8s',
@@ -164,7 +154,23 @@ class CreatePackageAction extends PackageAction
 
     private function addPackageSkaffoldFileToRootSkaffold(): void
     {
-        $this->rootSkaffoldYamlFile->addRequire( $this->packageSkaffoldYamlFileRelativePath);
+        $this->rootSkaffoldYamlFile->addRequire($this->packageSkaffoldYamlFileRelativePath);
     }
 
+    public function init(): void
+    {
+        $this->createSharedPackage();
+        $this->createRootK8sFiles();
+    }
+
+    private function createRootK8sFiles(): void
+    {
+        if ($this->configs->getMode() !== 'microservice') {
+            return;
+        }
+        FileUtil::copyDirectory(
+            source: __DIR__ . '/../../stubs/devops/root',
+            destination: getcwd()
+        );
+    }
 }

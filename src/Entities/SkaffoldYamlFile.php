@@ -9,7 +9,7 @@ use Symfony\Component\Yaml\Yaml;
 class SkaffoldYamlFile implements State
 {
 
-    private ?string $backup;
+    private ?string $backup = null;
 
     public function __construct(private readonly string $path)
     {
@@ -17,7 +17,10 @@ class SkaffoldYamlFile implements State
 
     public function backup(): void
     {
-        $this->backup = file_get_contents($this->path . DIRECTORY_SEPARATOR . 'skaffold.yaml');
+        $path = $this->path . DIRECTORY_SEPARATOR . 'skaffold.yaml';
+        if (file_exists($path)) {
+            $this->backup = file_get_contents($path);
+        }
     }
 
     public function rollback(): void

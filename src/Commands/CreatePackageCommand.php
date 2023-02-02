@@ -38,6 +38,10 @@ class CreatePackageCommand extends Command
             $io->error('Vendor name is not set in composer.json, add it to extra.monorepo.vendor_name');
             return Command::FAILURE;
         }
+        if (!($this->configs->getFramework())) {
+            $io->error('Framework name is not set in composer.json, add it to extra.monorepo.framework');
+            return Command::FAILURE;
+        }
         $packageComposerName = $this->getComposerPackageName($io, $input);
         $operation = new CreatePackageAction(
             packageComposerName: $packageComposerName,
@@ -46,7 +50,7 @@ class CreatePackageCommand extends Command
         );
         try {
             $operation->backup();
-            $operation->exec();
+            $operation->run();
         } catch (\Throwable $e) {
             $operation->rollback();
             $io->error($e->getMessage());

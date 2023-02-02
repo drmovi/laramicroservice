@@ -4,6 +4,7 @@ namespace Drmovi\PackageGenerator\Enums;
 
 enum OperationTypes : string
 {
-    case PackageGenerator = 'Generation';
-    case PackageRemover = 'Removal';
+    case PACKAGE_CREATION = 'creation';
+    case PACKAGE_DELETION = 'deletion';
+    case UNSPECIFIED = 'unspecified';
 }

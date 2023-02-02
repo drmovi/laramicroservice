@@ -7,6 +7,9 @@ class FileUtil
 
     public static function removeDirectory($dir): void
     {
+        if(!self::directoryExist($dir)) {
+            return;
+        }
 
         $files = array_diff(scandir($dir), ['.', '..']);
 

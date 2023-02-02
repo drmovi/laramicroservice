@@ -2,10 +2,14 @@
 
 namespace Drmovi\PackageGenerator\Actions;
 
+use Drmovi\PackageGenerator\Enums\OperationTypes;
 use Drmovi\PackageGenerator\Utils\FileUtil;
 
 class DeletePackageAction extends PackageAction
 {
+
+    protected OperationTypes $operationType = OperationTypes::PACKAGE_DELETION;
+
 
     public function exec(): void
     {
@@ -58,5 +62,10 @@ class DeletePackageAction extends PackageAction
     private function removePackageServiceFolderInSharedPackage(): void
     {
         FileUtil::removeDirectory($this->packageServiceFolderInSharedPackageAbsolutePath);
+    }
+
+    public function init(): void
+    {
+        // TODO: Implement init() method.
     }
 }

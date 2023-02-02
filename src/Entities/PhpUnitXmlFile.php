@@ -7,7 +7,7 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class PhpUnitXmlFile implements State
 {
-    private ?string $backup;
+    private ?string $backup = null;
 
     public function __construct(private readonly string $path)
     {
@@ -15,7 +15,10 @@ class PhpUnitXmlFile implements State
 
     public function backup(): void
     {
-        $this->backup = file_get_contents($this->path . DIRECTORY_SEPARATOR . 'phpunit.xml');
+        $path = $this->path . DIRECTORY_SEPARATOR . 'phpunit.xml';
+        if(file_exists($path)){
+            $this->backup = file_get_contents($path);
+        }
     }
 
     public function rollback(): void

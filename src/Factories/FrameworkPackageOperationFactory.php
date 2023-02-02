@@ -11,7 +11,8 @@ class FrameworkPackageOperationFactory
     public function make(string $framework, array $generatorArgs, OperationTypes $operation): Operation
     {
         $framework = ucfirst($framework);
-        $class = "Drmovi\\PackageGenerator\\Actions\\Frameworks\\{$framework}Package{$operation->value}";
+        $operation = ucfirst($operation->value);
+        $class = "Drmovi\\PackageGenerator\\Actions\\Frameworks\\{$framework}Package{$operation}";
         return new $class(...$generatorArgs);
     }
 }

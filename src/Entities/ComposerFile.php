@@ -7,7 +7,7 @@ use Drmovi\PackageGenerator\Contracts\State;
 class ComposerFile implements State
 {
 
-    private ?string $backup;
+    private ?string $backup = null;
 
     public function __construct(private readonly string $path)
     {
@@ -15,7 +15,10 @@ class ComposerFile implements State
 
     public function backup(): void
     {
-        $this->backup = file_get_contents($this->path . DIRECTORY_SEPARATOR . 'composer.json');
+        $path = $this->path . DIRECTORY_SEPARATOR . 'composer.json';
+        if(file_exists($path)){
+            $this->backup = file_get_contents($path);
+        }
     }
 
     public function rollback(): void
@@ -39,6 +42,13 @@ class ComposerFile implements State
     {
         $data = $this->getContent();
         $data['autoload' . $dev ? '-dev' : '']['psr-4'][$namespace] = $path;
+        $this->setContent($data);
+    }
+
+    public function addScripts(array $scripts): void
+    {
+        $data = $this->getContent();
+        $data['scripts'] = array_merge_recursive($data['scripts']??[], $scripts);
         $this->setContent($data);
     }
 }

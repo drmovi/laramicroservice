@@ -12,10 +12,11 @@ use Drmovi\PackageGenerator\Factories\FrameworkPackageOperationFactory;
 use Drmovi\PackageGenerator\Services\ComposerService;
 use Drmovi\PackageGenerator\Utils\FileUtil;
 
-abstract  class PackageAction implements Operation
+abstract class PackageAction implements Operation
 {
 
 
+    protected OperationTypes $operationType = OperationTypes::UNSPECIFIED;
     protected ComposerFile $rootComposerFile;
     protected Operation $packageOperation;
     protected string $packageAbsolutePath;
@@ -53,7 +54,7 @@ abstract  class PackageAction implements Operation
         $this->sharedPackageComposerName = $this->configs->getVendorName() . DIRECTORY_SEPARATOR . $this->sharedPackageName;
         $this->sharedPackageNamespace = $this->getPackageNamespace($this->sharedPackageComposerName);
 
-       $this->packageServiceFolderInSharedPackageAbsolutePath  =  $this->sharedPackageAbsolutePath . '/services/' . ucwords($this->packageName);
+        $this->packageServiceFolderInSharedPackageAbsolutePath = $this->sharedPackageAbsolutePath . '/services/' . ucwords($this->packageName);
 
         $this->packageOperation = (new FrameworkPackageOperationFactory())->make(
             framework: $this->configs->getFramework(),
@@ -62,9 +63,10 @@ abstract  class PackageAction implements Operation
                 'packageName' => $this->packageName,
                 'packageAbsolutePath' => $this->packageAbsolutePath,
                 'packageNamespace' => $this->packageNamespace,
+                'rootComposerFile' => $this->rootComposerFile,
                 'configs' => $this->configs,
             ],
-            operation: OperationTypes::PackageGenerator
+            operation: $this->operationType,
         );
 
     }
@@ -87,6 +89,18 @@ abstract  class PackageAction implements Operation
         $this->rootSkaffoldYamlFile->rollback();
     }
 
+    public function run(): void
+    {
+        if ($this->isInitialSetup()) {
+            $this->init();
+            $this->packageOperation->init();
+        }
+        $this->exec();
+        $this->packageOperation->exec();
+    }
+
+    abstract public function init(): void;
+
     abstract public function exec(): void;
 
     protected function getPackageName(string $packageComposerName): string
@@ -100,5 +114,10 @@ abstract  class PackageAction implements Operation
         $data = explode('/', $packageComposerName);
         $data = array_map(fn($item) => ucwords($item), $data);
         return implode('\\', $data);
+    }
+
+    private function isInitialSetup(): bool
+    {
+        return !FileUtil::directoryExist($this->sharedPackageAbsolutePath);
     }
 }

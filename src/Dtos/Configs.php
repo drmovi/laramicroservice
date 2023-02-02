@@ -28,7 +28,7 @@ class Configs
         $instance->appPath = $data['extra']['monorepo']['app_path'] ?? 'app';
         $instance->vendorName = $data['extra']['monorepo']['vendor_name'] ?? null;
         $instance->packagePath = $data['extra']['monorepo']['package_path'] ?? 'packages';
-        $instance->framework = $data['extra']['monorepo']['framework'] ?? 'laravel';
+        $instance->framework = $data['extra']['monorepo']['framework'] ?? null;
         return $instance;
     }
 
