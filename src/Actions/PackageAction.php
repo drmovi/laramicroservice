@@ -11,6 +11,7 @@ use Drmovi\PackageGenerator\Enums\OperationTypes;
 use Drmovi\PackageGenerator\Factories\FrameworkPackageOperationFactory;
 use Drmovi\PackageGenerator\Services\ComposerService;
 use Drmovi\PackageGenerator\Utils\FileUtil;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 abstract class PackageAction implements Operation
 {
@@ -37,6 +38,7 @@ abstract class PackageAction implements Operation
         protected readonly string          $packageComposerName,
         protected readonly Configs         $configs,
         protected readonly ComposerService $composer,
+        protected readonly SymfonyStyle $io,
     )
     {
         $this->rootComposerFile = new ComposerFile(getcwd());
@@ -65,6 +67,7 @@ abstract class PackageAction implements Operation
                 'packageNamespace' => $this->packageNamespace,
                 'rootComposerFile' => $this->rootComposerFile,
                 'composerService'=>$this->composer,
+                'io'=>$this->io,
                 'configs' => $this->configs,
             ],
             operation: $this->operationType,

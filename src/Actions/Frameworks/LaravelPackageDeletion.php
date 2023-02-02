@@ -7,6 +7,7 @@ use Drmovi\PackageGenerator\Dtos\Configs;
 use Drmovi\PackageGenerator\Entities\ComposerFile;
 use Drmovi\PackageGenerator\Services\ComposerService;
 use Drmovi\PackageGenerator\Utils\FileUtil;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class LaravelPackageDeletion implements Operation
 {
@@ -18,6 +19,7 @@ class LaravelPackageDeletion implements Operation
         private readonly string          $packageNamespace,
         private readonly ComposerFile    $rootComposerFile,
         private readonly ComposerService $composerService,
+        private readonly SymfonyStyle    $io,
         private readonly Configs         $configs,
     )
     {

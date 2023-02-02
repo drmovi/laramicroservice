@@ -47,6 +47,7 @@ class CreatePackageCommand extends Command
             packageComposerName: $packageComposerName,
             configs: $this->configs,
             composer: $this->composer,
+            io: $io
         );
         try {
             $operation->backup();

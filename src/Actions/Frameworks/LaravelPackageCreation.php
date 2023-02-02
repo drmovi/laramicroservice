@@ -7,6 +7,7 @@ use Drmovi\PackageGenerator\Dtos\Configs;
 use Drmovi\PackageGenerator\Entities\ComposerFile;
 use Drmovi\PackageGenerator\Services\ComposerService;
 use Drmovi\PackageGenerator\Utils\FileUtil;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class LaravelPackageCreation implements Operation
 {
@@ -20,6 +21,7 @@ class LaravelPackageCreation implements Operation
         private readonly string          $packageNamespace,
         private readonly ComposerFile    $rootComposerFile,
         private readonly ComposerService $composerService,
+        private readonly SymfonyStyle    $io,
         private readonly Configs         $configs,
     )
     {
@@ -75,23 +77,29 @@ class LaravelPackageCreation implements Operation
 
     private function installDevDependencies(): void
     {
-        $appDevDependencies = $this->appComposerFile->getRequireDev();
-        $rootDevDependencies = $this->rootComposerFile->getRequireDev();
-        $commonDevDependencies = array_intersect_key($appDevDependencies, $rootDevDependencies);
-        $requireDevPackages = array_map(fn($package,$version) => "$package:$version", array_keys($appDevDependencies),array_values($appDevDependencies));
-        if(!empty($commonDevDependencies)){
+        try {
+            $appDevDependencies = $this->appComposerFile->getRequireDev();
+            $rootDevDependencies = $this->rootComposerFile->getRequireDev();
+            $commonDevDependencies = array_intersect(array_keys($appDevDependencies), array_keys($rootDevDependencies));
+            $requireDevPackages = array_map(fn($package, $version) => "$package:$version", array_keys($appDevDependencies), array_values($appDevDependencies));
+            if (!empty($commonDevDependencies)) {
+                $this->composerService->runComposerCommand([
+                    'remove',
+                    '--dev',
+                    ...$commonDevDependencies,
+                    '--no-interaction'
+                ]);
+            }
             $this->composerService->runComposerCommand([
-                'remove',
+                'require',
                 '--dev',
-                implode(' ', $requireDevPackages),
+                '--with-all-dependencies',
+                ...$requireDevPackages,
                 '--no-interaction'
             ]);
+        } catch (\Throwable $e) {
+            $this->io->error($e->getMessage());
+            $this->io->warning("Failed to install dev dependencies for your app. Please install them manually.");
         }
-        $this->composerService->runComposerCommand([
-            'require',
-            '--dev',
-            implode(' ', $requireDevPackages),
-            '--no-interaction'
-        ]);
     }
 }
