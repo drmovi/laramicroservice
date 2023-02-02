@@ -5,26 +5,33 @@ namespace Drmovi\PackageGenerator\Actions\Frameworks;
 use Drmovi\PackageGenerator\Contracts\Operation;
 use Drmovi\PackageGenerator\Dtos\Configs;
 use Drmovi\PackageGenerator\Entities\ComposerFile;
+use Drmovi\PackageGenerator\Services\ComposerService;
 use Drmovi\PackageGenerator\Utils\FileUtil;
 
 class LaravelPackageCreation implements Operation
 {
 
+    private ComposerFile $appComposerFile;
+
     public function __construct(
-        private readonly string       $packageComposerName,
-        private readonly string       $packageName,
-        private readonly string       $packageAbsolutePath,
-        private readonly string       $packageNamespace,
-        private readonly ComposerFile $rootComposerFile,
-        private readonly Configs      $configs,
+        private readonly string          $packageComposerName,
+        private readonly string          $packageName,
+        private readonly string          $packageAbsolutePath,
+        private readonly string          $packageNamespace,
+        private readonly ComposerFile    $rootComposerFile,
+        private readonly ComposerService $composerService,
+        private readonly Configs         $configs,
     )
     {
+        $this->appComposerFile = new ComposerFile(getcwd() . DIRECTORY_SEPARATOR . $this->configs->getAppPath());
     }
 
     public function init(): void
     {
+
+        $this->installDevDependencies();
         $this->addLaravelScriptsToRoot();
-        $this->addLaravelAutoloadMapping();
+        $this->addAutoloadDev();
         $this->generateDotEnv();
     }
 
@@ -55,14 +62,36 @@ class LaravelPackageCreation implements Operation
         ]);
     }
 
-    private function generateDotEnv():void
+    private function generateDotEnv(): void
     {
-        FileUtil::copyFile($this->configs->getAppPath() . '/.env.example', $this->configs->getAppPath() . '/.env',[]);
+        FileUtil::copyFile($this->configs->getAppPath() . '/.env.example', $this->configs->getAppPath() . '/.env', []);
         exec("php ./{$this->configs->getAppPath()}/artisan key:generate --ansi");
     }
 
-    private function addLaravelAutoloadMapping():void
+    private function addAutoloadDev(): void
     {
-        $this->rootComposerFile->addPsr4Namespace("Tests\\", "{$this->configs->getAppPath()}/tests/", true);
+        $this->rootComposerFile->addPsr4Namespace($this->appComposerFile->getPsr4Namespace(), true);
+    }
+
+    private function installDevDependencies(): void
+    {
+        $appDevDependencies = $this->appComposerFile->getRequireDev();
+        $rootDevDependencies = $this->rootComposerFile->getRequireDev();
+        $commonDevDependencies = array_intersect_key($appDevDependencies, $rootDevDependencies);
+        $requireDevPackages = array_map(fn($package,$version) => "$package:$version", array_keys($appDevDependencies),array_values($appDevDependencies));
+        if(!empty($commonDevDependencies)){
+            $this->composerService->runComposerCommand([
+                'remove',
+                '--dev',
+                implode(' ', $requireDevPackages),
+                '--no-interaction'
+            ]);
+        }
+        $this->composerService->runComposerCommand([
+            'require',
+            '--dev',
+            implode(' ', $requireDevPackages),
+            '--no-interaction'
+        ]);
     }
 }

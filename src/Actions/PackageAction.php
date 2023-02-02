@@ -64,6 +64,7 @@ abstract class PackageAction implements Operation
                 'packageAbsolutePath' => $this->packageAbsolutePath,
                 'packageNamespace' => $this->packageNamespace,
                 'rootComposerFile' => $this->rootComposerFile,
+                'composerService'=>$this->composer,
                 'configs' => $this->configs,
             ],
             operation: $this->operationType,

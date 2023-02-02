@@ -130,7 +130,7 @@ class CreatePackageAction extends PackageAction
     )
     {
         $file = new ComposerFile($destination);
-        $file->addPsr4Namespace($packageNamespace . '\\Services\\', 'services/');
+        $file->addPsr4Namespace([$packageNamespace . '\\Services\\' => 'services/']);
     }
 
     private function addTestDirectoriesToPhpUnitXml(): void
