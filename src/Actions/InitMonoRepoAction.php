@@ -2,16 +2,20 @@
 
 namespace Drmovi\MonorepoGenerator\Actions;
 
+use Drmovi\MonorepoGenerator\Contracts\Operation;
 use Drmovi\MonorepoGenerator\Dtos\ActionDto;
+use Drmovi\MonorepoGenerator\Dtos\PackageDto;
 use Drmovi\MonorepoGenerator\Enums\Commands;
 use Drmovi\MonorepoGenerator\Enums\Modes;
+use Drmovi\MonorepoGenerator\Factories\FrameworkOperationFactory;
 use Drmovi\MonorepoGenerator\Services\PhpstanNeonService;
 use Drmovi\MonorepoGenerator\Services\RootComposerFileService;
 use Drmovi\MonorepoGenerator\Traits\CopyStubFiles;
 use Drmovi\MonorepoGenerator\Utils\FileUtil;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 
-class InitMonoRepoAction extends PackageAction
+class InitMonoRepoAction implements Operation
 {
 
     use CopyStubFiles;
@@ -22,6 +26,24 @@ class InitMonoRepoAction extends PackageAction
     {
         parent::__construct($actionDto);
         $this->rootComposerFileService = new RootComposerFileService(getcwd(), $this->actionDto->composerService);
+    }
+
+
+    public function exec(): int
+    {
+        $frameworkPackageOperation = (new FrameworkOperationFactory())->make($this->actionDto);
+        $this->backup();
+        $frameworkPackageOperation->backup();
+        try {
+            $this->_exec();
+            $frameworkPackageOperation->exec();
+            return Command::SUCCESS;
+        } catch (\Throwable $e) {
+            $frameworkPackageOperation->rollback();
+            $this->rollback();
+            $this->actionDto->io->error($e->getMessage());
+            return Command::FAILURE;
+        }
     }
 
     protected function _exec(): void

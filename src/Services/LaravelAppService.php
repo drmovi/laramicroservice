@@ -2,6 +2,7 @@
 
 namespace Drmovi\MonorepoGenerator\Services;
 
+use Drmovi\MonorepoGenerator\Dtos\ActionDto;
 use Drmovi\MonorepoGenerator\Dtos\PackageDto;
 
 class LaravelAppService
@@ -11,13 +12,13 @@ class LaravelAppService
 
     private static self $instance;
 
-    private function __construct(private readonly PackageDto $actionDto)
+    private function __construct(private readonly ActionDto $actionDto)
     {
         $app = require $this->actionDto->configs->getAppPath() . '/bootstrap/app.php';
         $this->app = $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
     }
 
-    public static function instance(PackageDto $actionDto): self
+    public static function instance(ActionDto $actionDto): self
     {
         if (!self::$instance) {
             self::$instance = new self($actionDto);

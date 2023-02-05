@@ -16,9 +16,8 @@ class NeonFileService implements State
 
     public function backup(): void
     {
-        $path = $this->path;
-        if (file_exists($path)) {
-            $this->backup = file_get_contents($path);
+        if (file_exists($this->path)) {
+            $this->backup = file_get_contents($this->path);
         }
     }
 

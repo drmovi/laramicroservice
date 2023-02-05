@@ -3,6 +3,7 @@
 namespace Drmovi\MonorepoGenerator\Actions\Frameworks;
 
 use Drmovi\MonorepoGenerator\Contracts\Operation;
+use Drmovi\MonorepoGenerator\Dtos\ActionDto;
 use Drmovi\MonorepoGenerator\Dtos\PackageDto;
 use Drmovi\MonorepoGenerator\Services\ComposerFileService;
 use Drmovi\MonorepoGenerator\Services\LaravelAppService;
@@ -16,10 +17,10 @@ class LaravelMonorepoInit implements Operation
     private RootComposerFileService $rootComposerService;
     private ComposerFileService $appComposerService;
 
-    public function __construct(protected readonly PackageDto $packageDto)
+    public function __construct(protected readonly ActionDto $actionDto)
     {
-        $this->rootComposerService = new RootComposerFileService(getcwd(), $this->packageDto->composerService);
-        $this->appComposerService = new ComposerFileService($this->packageDto->configs->getAppPath(), $this->packageDto->composerService);
+        $this->rootComposerService = new RootComposerFileService(getcwd(), $this->actionDto->composerService);
+        $this->appComposerService = new ComposerFileService($this->actionDto->configs->getAppPath(), $this->actionDto->composerService);
 
     }
 
@@ -43,20 +44,20 @@ class LaravelMonorepoInit implements Operation
     {
         $this->appComposerService?->rollback();
         $this->rootComposerService->rollback();
-        FileUtil::removeDirectory($this->packageDto->configs->getAppPath());
+        FileUtil::removeDirectory($this->actionDto->configs->getAppPath());
     }
 
 
     private function generateDotEnv(): void
     {
-        FileUtil::copyFile($this->packageDto->configs->getAppPath() . '/.env.example', $this->packageDto->configs->getAppPath() . '/.env', []);
+        FileUtil::copyFile($this->actionDto->configs->getAppPath() . '/.env.example', $this->actionDto->configs->getAppPath() . '/.env', []);
         $this->getLaravelAppService()->artisan('key:generate', ['--ansi' => true]);
     }
 
 
     private function addAppRepositoryToRootComposerFile(): void
     {
-        $this->rootComposerService->addRepository($this->packageDto->configs->getFramework(), './' . $this->packageDto->configs->getAppPath());
+        $this->rootComposerService->addRepository($this->actionDto->configs->getFramework(), './' . $this->actionDto->configs->getAppPath());
     }
 
 
@@ -65,10 +66,10 @@ class LaravelMonorepoInit implements Operation
         $this->rootComposerService->addScripts([
             'post-autoload-dump' => [
                 "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-                "@php {$this->packageDto->configs->getAppPath()}/artisan package:discover --ansi"
+                "@php {$this->actionDto->configs->getAppPath()}/artisan package:discover --ansi"
             ],
             'post-update-cmd' => [
-                "@php {$this->packageDto->configs->getAppPath()}/artisan vendor:publish --tag=laravel-assets --ansi --force"
+                "@php {$this->actionDto->configs->getAppPath()}/artisan vendor:publish --tag=laravel-assets --ansi --force"
             ],
         ]);
     }
@@ -76,24 +77,24 @@ class LaravelMonorepoInit implements Operation
 
     private function installLaravelProject(): void
     {
-        $this->packageDto->composerService->runComposerCommand([
+        $this->actionDto->composerService->runComposerCommand([
             'create-project',
             'laravel/laravel',
             '--no-install',
             '--no-scripts',
             '--no-interaction',
-            $this->packageDto->configs->getAppPath(),
+            $this->actionDto->configs->getAppPath(),
         ]);
     }
 
     private function symLinkRootVendorToApp(): void
     {
-        FileUtil::createSymLink('./' . $this->packageDto->configs->getAppPath(), './../vendor');
+        FileUtil::createSymLink('./../vendor','./' . $this->actionDto->configs->getAppPath().'/vendor' );
     }
 
     private function getLaravelAppService(): LaravelAppService
     {
-        return LaravelAppService::instance($this->packageDto);
+        return LaravelAppService::instance($this->actionDto);
     }
 
     private function installDevDependencies(): void
@@ -119,8 +120,8 @@ class LaravelMonorepoInit implements Operation
                 '--no-interaction'
             ]);
         } catch (\Throwable $e) {
-            $this->packageDto->io->error($e->getMessage());
-            $this->packageDto->io->warning("Failed to install dev dependencies for your app. Please install them manually.");
+            $this->actionDto->io->error($e->getMessage());
+            $this->actionDto->io->warning("Failed to install dev dependencies for your app. Please install them manually.");
         }
     }
 
@@ -134,9 +135,9 @@ class LaravelMonorepoInit implements Operation
             'nunomaduro/larastan',
             'psalm/plugin-laravel'
         ]);
-        exec("./vendor/bin/psalm-plugin enable -c {$this->packageDto->configs->getConfPath()}/psalm.xml psalm/plugin-laravel");
-        $phpstanNeonFileService = new PhpstanNeonService($this->packageDto->configs->getConfPath());
+        exec("./vendor/bin/psalm-plugin enable -c {$this->actionDto->configs->getConfPath()}/psalm.xml psalm/plugin-laravel");
+        $phpstanNeonFileService = new PhpstanNeonService($this->actionDto->configs->getConfPath());
         $phpstanNeonFileService->addExtensionRefs( ['./vendor/nunomaduro/larastan/extension.neon']);
-        $phpstanNeonFileService->addExcludePaths(["../{$this->packageDto->configs->getAppPath()}/bootstrap/cache", "../{$this->packageDto->configs->getAppPath()}/storage"]);
+        $phpstanNeonFileService->addExcludePaths(["../{$this->actionDto->configs->getAppPath()}/bootstrap/cache", "../{$this->actionDto->configs->getAppPath()}/storage"]);
     }
 }

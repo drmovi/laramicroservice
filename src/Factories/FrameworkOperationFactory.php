@@ -19,7 +19,7 @@ class FrameworkOperationFactory
         ],
     ];
 
-    public function make(PackageDto $dto): Operation
+    public function make(ActionDto $dto): Operation
     {
         $class = $this->packages[$dto->input->getArgument('framework')][$dto->command->getName()] ?? null;
         if (!$class) {
