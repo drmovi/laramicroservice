@@ -4,8 +4,10 @@ namespace Drmovi\MonorepoGenerator\Enums;
 
 use Drmovi\MonorepoGenerator\Utils\EnumUtils;
 
-enum Frameworks : string
+enum Modes: string
 {
     use EnumUtils;
-    case LARAVEL = 'laravel';
+
+    case MONOLITH = 'monolith';
+    case MICROSERVICE = 'microservice';
 }

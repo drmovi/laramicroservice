@@ -1,19 +1,20 @@
 {
-  "name": "drmovi/package-generator",
+  "name": "drmovi/monorepo-generator",
   "description": "Create a package scaffold for different frameworks",
   "type": "project",
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.2",
     "symfony/dom-crawler": "^6.2",
     "composer/composer": "^2.5",
     "symfony/yaml": "^6.2",
-    "symfony/console": "^6.2"
+    "symfony/console": "^6.2",
+    "nette/neon": "^3.4"
   },
   "bin": ["dpg"],
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "Drmovi\\PackageGenerator\\": "src/"
+      "Drmovi\\MonorepoGenerator\\": "src/"
     }
   },
   "authors": [

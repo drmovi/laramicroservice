@@ -1,126 +1,83 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Actions;
+namespace Drmovi\MonorepoGenerator\Actions;
 
-use Drmovi\PackageGenerator\Contracts\Operation;
-use Drmovi\PackageGenerator\Dtos\Configs;
-use Drmovi\PackageGenerator\Entities\ComposerFile;
-use Drmovi\PackageGenerator\Entities\PhpUnitXmlFile;
-use Drmovi\PackageGenerator\Entities\SkaffoldYamlFile;
-use Drmovi\PackageGenerator\Enums\OperationTypes;
-use Drmovi\PackageGenerator\Factories\FrameworkPackageOperationFactory;
-use Drmovi\PackageGenerator\Services\ComposerService;
-use Drmovi\PackageGenerator\Utils\FileUtil;
-use Symfony\Component\Console\Style\SymfonyStyle;
+use Drmovi\MonorepoGenerator\Contracts\Operation;
+use Drmovi\MonorepoGenerator\Dtos\ActionDto;
+use Drmovi\MonorepoGenerator\Dtos\PackageData;
+use Drmovi\MonorepoGenerator\Dtos\PackageDto;
+use Drmovi\MonorepoGenerator\Factories\FrameworkOperationFactory;
+use Drmovi\MonorepoGenerator\Services\ComposerFileService;
+use Drmovi\MonorepoGenerator\Services\PhpstanNeonService;
+use Drmovi\MonorepoGenerator\Services\PhpUnitXmlFileService;
+use Drmovi\MonorepoGenerator\Services\SkaffoldYamlFileService;
+use Symfony\Component\Console\Command\Command;
 
 abstract class PackageAction implements Operation
 {
 
 
-    protected OperationTypes $operationType = OperationTypes::UNSPECIFIED;
-    protected ComposerFile $rootComposerFile;
-    protected Operation $packageOperation;
-    protected string $packageAbsolutePath;
-    protected string $packageNamespace;
-    protected string $packageName;
-    protected string $packageRelativePath;
-    protected string $sharedPackageName;
-    protected string $sharedPackageRelativePath;
-    protected string $sharedPackageAbsolutePath;
-    protected string $sharedPackageComposerName;
-    protected string $sharedPackageNamespace;
-    protected PhpUnitXmlFile $rootPhpunitXmlFile;
-    protected SkaffoldYamlFile $rootSkaffoldYamlFile;
-    protected string $packageSkaffoldYamlFileRelativePath;
-    protected string $packageServiceFolderInSharedPackageAbsolutePath;
+    protected PackageData $packageData;
 
-    public function __construct(
-        protected readonly string          $packageComposerName,
-        protected readonly Configs         $configs,
-        protected readonly ComposerService $composer,
-        protected readonly SymfonyStyle $io,
-    )
+    public function __construct(protected readonly ActionDto $actionDto)
     {
-        $this->rootComposerFile = new ComposerFile(getcwd());
-        $this->rootPhpunitXmlFile = new PhpunitXmlFile(getcwd());
-        $this->rootSkaffoldYamlFile = new SkaffoldYamlFile(getcwd());
-        $this->packageName = $this->getPackageName($packageComposerName);
-        $this->packageRelativePath = $this->configs->getPackagePath() . DIRECTORY_SEPARATOR . $this->packageName;
-        $this->packageAbsolutePath = getcwd() . DIRECTORY_SEPARATOR . $this->packageRelativePath;
-        $this->packageNamespace = $this->getPackageNamespace($packageComposerName);
-        $this->packageSkaffoldYamlFileRelativePath = $this->packageRelativePath . '/k8s/skaffold.yaml';
-
-        $this->sharedPackageName = 'shared';
-        $this->sharedPackageRelativePath = $this->configs->getPackagePath() . DIRECTORY_SEPARATOR . $this->sharedPackageName;
-        $this->sharedPackageAbsolutePath = getcwd() . DIRECTORY_SEPARATOR . $this->sharedPackageRelativePath;
-        $this->sharedPackageComposerName = $this->configs->getVendorName() . DIRECTORY_SEPARATOR . $this->sharedPackageName;
-        $this->sharedPackageNamespace = $this->getPackageNamespace($this->sharedPackageComposerName);
-
-        $this->packageServiceFolderInSharedPackageAbsolutePath = $this->sharedPackageAbsolutePath . '/services/' . ucwords($this->packageName);
-
-        $this->packageOperation = (new FrameworkPackageOperationFactory())->make(
-            framework: $this->configs->getFramework(),
-            generatorArgs: [
-                'packageComposerName' => $this->packageComposerName,
-                'packageName' => $this->packageName,
-                'packageAbsolutePath' => $this->packageAbsolutePath,
-                'packageNamespace' => $this->packageNamespace,
-                'rootComposerFile' => $this->rootComposerFile,
-                'composerService'=>$this->composer,
-                'io'=>$this->io,
-                'configs' => $this->configs,
-            ],
-            operation: $this->operationType,
+        $this->packageData = new PackageData(
+            rootComposerFileService: new ComposerFileService(getcwd(), $this->actionDto->composerService),
+            rootPhpunitXmlFileService: new PhpUnitXmlFileService(getcwd()),
+            rootSkaffoldYamlFileService: new SkaffoldYamlFileService(getcwd()),
+            phpstanNeonFileService: new PhpstanNeonService(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getConfPath()),
+            packageName: $packageName = $this->actionDto->input->getArgument('name'),
+            packageRelativePath: $packageRelativePath = ($this->isSharedPackage() ? $this->actionDto->configs->getSharedPackagesPath() : $this->actionDto->configs->getPackagePath()) . DIRECTORY_SEPARATOR . $packageName,
+            packageAbsolutePath: getcwd() . DIRECTORY_SEPARATOR . $packageRelativePath,
+            packageNamespace: $this->getPackageNamespace($packageName),
+            packageSkaffoldYamlFileRelativePath: $packageRelativePath . '/k8s/skaffold.yaml',
+            packageComposerName: $this->getComposerPackageName(),
+            isSharedPackage: $this->isSharedPackage()
         );
 
     }
 
-    public function backup(): void
+    public function exec(): int
     {
-        $this->rootComposerFile->backup();
-        $this->packageOperation->backup();
-        $this->rootPhpunitXmlFile->backup();
-        $this->rootSkaffoldYamlFile->backup();
-    }
-
-    public function rollback(): void
-    {
-        $this->rootComposerFile->rollback();
-        FileUtil::removeDirectory($this->packageAbsolutePath);
-        FileUtil::removeDirectory($this->packageServiceFolderInSharedPackageAbsolutePath);
-        $this->packageOperation->rollback();
-        $this->rootPhpunitXmlFile->rollback();
-        $this->rootSkaffoldYamlFile->rollback();
-    }
-
-    public function run(): void
-    {
-        if ($this->isInitialSetup()) {
-            $this->init();
-            $this->packageOperation->init();
+        $frameworkPackageOperation = (new FrameworkOperationFactory())->make(PackageDto::loadFromActionDto($this->actionDto, $this->packageData));
+        $this->backup();
+        $frameworkPackageOperation->backup();
+        try {
+            $this->_exec();
+            $frameworkPackageOperation->exec();
+            return Command::SUCCESS;
+        } catch (\Throwable $e) {
+            $frameworkPackageOperation->rollback();
+            $this->rollback();
+            $this->actionDto->io->error($e->getMessage());
+            return Command::FAILURE;
         }
-        $this->exec();
     }
 
-    abstract public function init(): void;
 
-    abstract public function exec(): void;
+    abstract protected function _exec(): void;
 
-    protected function getPackageName(string $packageComposerName): string
+    abstract public function backup(): void;
+
+    abstract public function rollback(): void;
+
+
+    private function getComposerPackageName(): string
     {
-        $data = explode('/', $packageComposerName);
-        return $data[1];
+        return "{$this->actionDto->configs->getVendorName()}/{$this->packageData->packageName}";
     }
 
-    protected function getPackageNamespace(string $packageComposerName): string
+    private function isSharedPackage(): bool
     {
-        $data = explode('/', $packageComposerName);
-        $data = array_map(fn($item) => ucwords($item), $data);
-        return implode('\\', $data);
+        return $this->actionDto->input->getArgument('shared');
     }
 
-    private function isInitialSetup(): bool
+    protected function getPackageNamespace(string $packageName): string
     {
-        return !FileUtil::directoryExist($this->sharedPackageAbsolutePath);
+        return implode('\\', [
+            ucwords($this->actionDto->configs->getVendorName()),
+            ucwords($packageName)
+        ]);
     }
+
 }

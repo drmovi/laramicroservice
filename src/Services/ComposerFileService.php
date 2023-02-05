@@ -1,15 +1,18 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Entities;
+namespace Drmovi\MonorepoGenerator\Services;
 
-use Drmovi\PackageGenerator\Contracts\State;
+use Drmovi\MonorepoGenerator\Contracts\State;
 
-class ComposerFile implements State
+class ComposerFileService implements State
 {
 
     private ?string $backup = null;
 
-    public function __construct(private readonly string $path)
+    public function __construct(
+        protected readonly string          $path,
+        protected readonly ComposerService $composer
+    )
     {
     }
 
@@ -26,6 +29,11 @@ class ComposerFile implements State
         if ($this->backup) {
             file_put_contents($this->path . DIRECTORY_SEPARATOR . 'composer.json', $this->backup);
         }
+    }
+
+    public function getName(): string
+    {
+        return $this->getContent()['name'];
     }
 
     public function getContent(): array
@@ -64,5 +72,35 @@ class ComposerFile implements State
     {
         $data = $this->getContent();
         return $string ? ($data['require-dev'][$string] ?? null) : $data['require-dev'];
+    }
+
+
+    public function addRepository(string $name, string $url, bool $dev = false): void
+    {
+        $this->composer->runComposerCommand([
+            'config',
+            "repositories.$name",
+            json_encode(['type' => 'path', 'url' => $url]),
+            '--working-dir',
+            $this->path,
+            '--no-interaction'
+        ]);
+        $repoComposerFile = new ComposerFileService($url, $this->composer);
+        $args = [
+            'require',
+            $repoComposerFile->getName(),
+            '--working-dir',
+            $this->path,
+            '--no-interaction'
+        ];
+        if ($dev) {
+            $args[] = '--dev';
+        }
+        $this->composer->runComposerCommand($args);
+    }
+
+    public function runComposerCommand(array $args)
+    {
+        $this->composer->runComposerCommand($args + ['--working-dir', $this->path]);
     }
 }

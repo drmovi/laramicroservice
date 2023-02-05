@@ -1,6 +1,6 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Services;
+namespace Drmovi\MonorepoGenerator\Services;
 
 use Composer\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;

@@ -1,17 +1,14 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Actions;
+namespace Drmovi\MonorepoGenerator\Actions;
 
-use Drmovi\PackageGenerator\Enums\OperationTypes;
-use Drmovi\PackageGenerator\Utils\FileUtil;
+use Drmovi\MonorepoGenerator\Utils\FileUtil;
 
 class DeletePackageAction extends PackageAction
 {
 
-    protected OperationTypes $operationType = OperationTypes::PACKAGE_DELETION;
 
-
-    public function exec(): void
+    protected function _exec(): void
     {
         $this->packageOperation->exec();
         $this->removePackageRefInRootSkaffoldYamlFile();
@@ -21,9 +18,9 @@ class DeletePackageAction extends PackageAction
         $this->removePackageServiceFolderInSharedPackage();
     }
 
+
     public function rollback(): void
     {
-        parent::rollback();
         $this->composer->runComposerCommand([
             'install',
             '--no-interaction',
@@ -64,8 +61,8 @@ class DeletePackageAction extends PackageAction
         FileUtil::removeDirectory($this->packageServiceFolderInSharedPackageAbsolutePath);
     }
 
-    public function init(): void
+    public function backup(): void
     {
-        // TODO: Implement init() method.
+        // TODO: Implement backup() method.
     }
 }

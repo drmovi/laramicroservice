@@ -1,35 +1,56 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Dtos;
+namespace Drmovi\MonorepoGenerator\Dtos;
 
-use Composer\Console\Application;
+use Drmovi\MonorepoGenerator\Services\ComposerFileService;
+use Symfony\Component\Console\Input\InputInterface;
 
 class Configs
 {
-    private string $mode;
+    private ?string $mode = null;
 
-    private ?string $vendorName;
+    private ?string $vendorName = null;
 
-    private string $appPath;
+    private ?string $appPath = null;
 
-    private string $packagePath;
+    private ?string $packagePath = null;
 
-    private string $framework;
+    private ?string $framework = null;
+
+    private ?string $confPath = null;
+
+    private bool $isInitialized = false;
+
+    private ?array $sharedPackagesPath = null;
 
     private function __construct()
     {
     }
 
-    public static function loadFromComposer(Application $composer): self
+    public static function loadFromComposer(ComposerFileService $composerFileService): self
     {
-        $data = json_decode(file_get_contents($composer->getComposer()->getConfig()->getConfigSource()->getName()), true);
+        $data = $composerFileService->getMonorepoData();
         $instance = new self();
-        $instance->mode = $data['extra']['monorepo']['mode'] ?? 'package';
-        $instance->appPath = $data['extra']['monorepo']['app_path'] ?? 'app';
-        $instance->vendorName = $data['extra']['monorepo']['vendor_name'] ?? null;
-        $instance->packagePath = $data['extra']['monorepo']['package_path'] ?? 'packages';
-        $instance->framework = $data['extra']['monorepo']['framework'] ?? null;
+        $instance->mode = $data['mode'] ?? null;
+        $instance->appPath = $data['app_path'] ?? null;
+        $instance->vendorName = $data['vendor_name'] ?? null;
+        $instance->packagePath = $data['package_path'] ?? null;
+        $instance->sharedPackagesPath = $data['shared_package_path'] ?? null;
+        $instance->framework = $data['framework'] ?? null;
         return $instance;
+    }
+
+    public static function loadFromInput(InputInterface $input):self
+    {
+        $instance = new self();
+        $instance->mode = $input->getArgument('mode');
+        $instance->appPath = $input->getArgument('app_path');
+        $instance->vendorName = $input->getArgument('vendor_name');
+        $instance->packagePath = $$input->getArgument('packages_path');
+        $instance->sharedPackagesPath = $input->getArgument('shared_packages_path');
+        $instance->framework = $input->getArgument('framework');
+        return $instance;
+
     }
 
     public function getMode(): string
@@ -55,6 +76,24 @@ class Configs
     public function getFramework(): string
     {
         return $this->framework;
+    }
+
+
+    public function getConfPath(): string
+    {
+        return $this->confPath;
+    }
+
+
+    public function isInitialized(): bool
+    {
+        return $this->isInitialized;
+    }
+
+
+    public function getSharedPackagesPath(): ?array
+    {
+        return $this->sharedPackagesPath;
     }
 
 

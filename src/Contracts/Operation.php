@@ -1,10 +1,9 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Contracts;
+namespace Drmovi\MonorepoGenerator\Contracts;
 
 interface Operation extends State
 {
-    public function exec(): void;
+    public function exec(): int;
 
-    public function init(): void;
 }

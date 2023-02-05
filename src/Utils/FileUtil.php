@@ -1,6 +1,6 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Utils;
+namespace Drmovi\MonorepoGenerator\Utils;
 
 class FileUtil
 {
@@ -51,6 +51,11 @@ class FileUtil
         file_put_contents($destinationFile, $content);
     }
 
+    public static function makeFile(string $destinationFile,string $content):void
+    {
+        file_put_contents($destinationFile, $content);
+    }
+
     public static function emptyDirectory(string $dir): void
     {
 
@@ -59,5 +64,15 @@ class FileUtil
         foreach ($files as $file) {
             (is_dir("$dir/$file")) ? static::removeDirectory("$dir/$file") : unlink("$dir/$file");
         }
+    }
+
+    public static function createSymLink(string $target, string $link): void
+    {
+        symlink($target, $link);
+    }
+
+    public static function removeFile(string $filePath):void
+    {
+        unlink($filePath);
     }
 }

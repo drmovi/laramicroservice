@@ -1,6 +1,6 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Contracts;
+namespace Drmovi\MonorepoGenerator\Contracts;
 
 interface State
 {

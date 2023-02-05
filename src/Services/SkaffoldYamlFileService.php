@@ -1,12 +1,11 @@
 <?php
 
-namespace Drmovi\PackageGenerator\Entities;
+namespace Drmovi\MonorepoGenerator\Services;
 
-use Drmovi\PackageGenerator\Contracts\State;
-use Symfony\Component\DomCrawler\Crawler;
+use Drmovi\MonorepoGenerator\Contracts\State;
 use Symfony\Component\Yaml\Yaml;
 
-class SkaffoldYamlFile implements State
+class SkaffoldYamlFileService implements State
 {
 
     private ?string $backup = null;
