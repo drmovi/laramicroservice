@@ -10,7 +10,7 @@
     "symfony/console": "^6.2",
     "nette/neon": "^3.4"
   },
-  "bin": ["dpg"],
+  "bin": ["dmg"],
   "license": "MIT",
   "autoload": {
     "psr-4": {
