@@ -8,6 +8,7 @@ use Drmovi\MonorepoGenerator\Dtos\ActionDto;
 use Drmovi\MonorepoGenerator\Dtos\Configs;
 use Drmovi\MonorepoGenerator\Services\ComposerFileService;
 use Drmovi\MonorepoGenerator\Services\ComposerService;
+use Drmovi\MonorepoGenerator\Services\RootComposerFileService;
 use Drmovi\MonorepoGenerator\Utils\FileUtil;
 use Drmovi\MonorepoGenerator\Validators\PackageNameValidator;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -23,18 +24,17 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class MonorepoPackageCreateCommand extends Command
 {
-
-
     protected function configure(): void
     {
-        $this->addArgument('name', InputArgument::OPTIONAL, 'Name of your package', null);
+        $this->addArgument('name', InputArgument::REQUIRED, 'Name of your package', null)
+            ->addArgument('shared', InputArgument::OPTIONAL, 'Add to shared packages', null);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $composerService = new ComposerService($output);
-        $configs = Configs::loadFromComposer(new ComposerFileService(getcwd(), $composerService));
+        $configs = Configs::loadFromComposer(new RootComposerFileService(getcwd(), $composerService));
         $this->validateNameArg($input, $io, $configs);
         return (new CreatePackageAction(new ActionDto(
             command: $this,
@@ -71,7 +71,7 @@ class MonorepoPackageCreateCommand extends Command
             throw new \RuntimeException($nameValidator->getErrorMessage());
         }
         if (
-            FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getPackagePath() . DIRECTORY_SEPARATOR . $name)
+            FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getPackagesPath() . DIRECTORY_SEPARATOR . $name)
             || FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . $name)
         ) {
             throw new \RuntimeException("Package with name $name already exists !!");

@@ -8,6 +8,7 @@ use Drmovi\MonorepoGenerator\Dtos\ActionDto;
 use Drmovi\MonorepoGenerator\Dtos\Configs;
 use Drmovi\MonorepoGenerator\Services\ComposerFileService;
 use Drmovi\MonorepoGenerator\Services\ComposerService;
+use Drmovi\MonorepoGenerator\Services\RootComposerFileService;
 use Drmovi\MonorepoGenerator\Utils\FileUtil;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -32,7 +33,7 @@ class MonorepoPackageDeleteCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $composerService = new ComposerService($output);
-        $configs = Configs::loadFromComposer(new ComposerFileService(getcwd(), $composerService));
+        $configs = Configs::loadFromComposer(new RootComposerFileService(getcwd(), $composerService));
         $this->validateNameArg($input, $io, $configs);
         return (new DeletePackageAction(new ActionDto(
             command: $this,
@@ -64,7 +65,7 @@ class MonorepoPackageDeleteCommand extends Command
 
     private function validatePackageName(string $name, Configs $configs, InputInterface $input): void
     {
-        if (FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getPackagePath() . DIRECTORY_SEPARATOR . $name)) {
+        if (FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getPackagesPath() . DIRECTORY_SEPARATOR . $name)) {
             return;
         }
         if (FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . $name)) {

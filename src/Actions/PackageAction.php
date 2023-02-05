@@ -27,7 +27,7 @@ abstract class PackageAction implements Operation
             rootSkaffoldYamlFileService: new SkaffoldYamlFileService(getcwd()),
             phpstanNeonFileService: new PhpstanNeonService(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getConfPath()),
             packageName: $packageName = $this->actionDto->input->getArgument('name'),
-            packageRelativePath: $packageRelativePath = ($this->isSharedPackage() ? $this->actionDto->configs->getSharedPackagesPath() : $this->actionDto->configs->getPackagePath()) . DIRECTORY_SEPARATOR . $packageName,
+            packageRelativePath: $packageRelativePath = ($this->isSharedPackage() ? $this->actionDto->configs->getSharedPackagesPath() : $this->actionDto->configs->getPackagesPath()) . DIRECTORY_SEPARATOR . $packageName,
             packageAbsolutePath: getcwd() . DIRECTORY_SEPARATOR . $packageRelativePath,
             packageNamespace: $this->getPackageNamespace($packageName),
             packageSkaffoldYamlFileRelativePath: $packageRelativePath . '/k8s/skaffold.yaml',

@@ -13,7 +13,7 @@ class Configs
 
     private ?string $appPath = null;
 
-    private ?string $packagePath = null;
+    private ?string $packagesPath = null;
 
     private ?string $framework = null;
 
@@ -21,7 +21,7 @@ class Configs
 
     private bool $isInitialized = false;
 
-    private ?array $sharedPackagesPath = null;
+    private ?string $sharedPackagesPath = null;
 
     private function __construct()
     {
@@ -34,31 +34,32 @@ class Configs
         $instance->mode = $data['mode'] ?? null;
         $instance->appPath = $data['app_path'] ?? null;
         $instance->vendorName = $data['vendor_name'] ?? null;
-        $instance->packagePath = $data['package_path'] ?? null;
-        $instance->sharedPackagesPath = $data['shared_package_path'] ?? null;
+        $instance->packagesPath = $data['packages_path'] ?? null;
+        $instance->sharedPackagesPath = $data['shared_packages_path'] ?? null;
         $instance->framework = $data['framework'] ?? null;
+        $instance->isInitialized = (bool)$data;
         return $instance;
     }
 
-    public static function loadFromInput(InputInterface $input):self
+    public static function loadFromInput(InputInterface $input): self
     {
         $instance = new self();
         $instance->mode = $input->getArgument('mode');
         $instance->appPath = $input->getArgument('app_path');
         $instance->vendorName = $input->getArgument('vendor_name');
-        $instance->packagePath = $$input->getArgument('packages_path');
+        $instance->packagesPath = $$input->getArgument('packages_path');
         $instance->sharedPackagesPath = $input->getArgument('shared_packages_path');
         $instance->framework = $input->getArgument('framework');
         return $instance;
 
     }
 
-    public function getMode(): string
+    public function getMode():? string
     {
         return $this->mode;
     }
 
-    public function getAppPath(): string
+    public function getAppPath():? string
     {
         return $this->appPath;
     }
@@ -68,18 +69,18 @@ class Configs
         return $this->vendorName;
     }
 
-    public function getPackagePath(): string
+    public function getPackagesPath():? string
     {
-        return $this->packagePath;
+        return $this->packagesPath;
     }
 
-    public function getFramework(): string
+    public function getFramework():? string
     {
         return $this->framework;
     }
 
 
-    public function getConfPath(): string
+    public function getConfPath():? string
     {
         return $this->confPath;
     }
@@ -91,7 +92,7 @@ class Configs
     }
 
 
-    public function getSharedPackagesPath(): ?array
+    public function getSharedPackagesPath(): ?string
     {
         return $this->sharedPackagesPath;
     }

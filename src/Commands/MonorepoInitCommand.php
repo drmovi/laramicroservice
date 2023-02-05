@@ -2,6 +2,7 @@
 
 namespace Drmovi\MonorepoGenerator\Commands;
 
+use Composer\Console\Input\InputArgument;
 use Drmovi\MonorepoGenerator\Actions\InitMonoRepoAction;
 use Drmovi\MonorepoGenerator\Dtos\ActionDto;
 use Drmovi\MonorepoGenerator\Dtos\Configs;
@@ -25,6 +26,17 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class MonorepoInitCommand extends Command
 {
+    protected function configure(): void
+    {
+        $this->addArgument('vendor_name', InputArgument::OPTIONAL, 'Vendor name used as namespace prefix', null)
+            ->addArgument('framework', InputArgument::OPTIONAL, 'Framework app to install e.g. laravel', null)
+            ->addArgument('mode', InputArgument::OPTIONAL, 'Monorepo mode e.g microservice', null)
+            ->addArgument('app_path', InputArgument::OPTIONAL, 'Path to which framework app will be installed', null)
+            ->addArgument('conf_path', InputArgument::OPTIONAL, 'Path which development configuration files will be added e.g. phpstan.neon', null)
+            ->addArgument('packages_path', InputArgument::OPTIONAL, 'Path that will contains all packages or services', null)
+            ->addArgument('shared_packages_path', InputArgument::OPTIONAL, 'Path that will contains all shared packages', null)
+            ->addArgument('shared_packages', InputArgument::OPTIONAL, 'Comma separated list of shared packages stubs to be added', null);
+    }
 
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -46,6 +58,12 @@ class MonorepoInitCommand extends Command
         $input->setArgument('framework', $io->choice('What\'s your framework?', Frameworks::valuesToArray(), Frameworks::LARAVEL->value));
         $input->setArgument('mode', $io->choice('What\'s your project type', Modes::valuesToArray(), Modes::MICROSERVICE->value));
         $input->setArgument('app_path', $io->ask('What\'s your desired app path', 'app', function ($answer) {
+            $validator = new PathValidator();
+            if (!$validator->validate($answer)) {
+                throw new \RuntimeException($validator->getErrorMessage());
+            }
+        }));
+        $input->setArgument('conf_path', $io->ask('What\'s your desired development configuration path "will contain phpstan and psalm files"', 'devconf', function ($answer) {
             $validator = new PathValidator();
             if (!$validator->validate($answer)) {
                 throw new \RuntimeException($validator->getErrorMessage());

@@ -115,7 +115,7 @@ class InitMonoRepoAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagePath()
+            packagePath: $this->actionDto->configs->getPackagesPath()
         );
     }
 
@@ -166,7 +166,7 @@ class InitMonoRepoAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagePath()
+            packagePath: $this->actionDto->configs->getPackagesPath()
         );
         FileUtil::makeFile(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getConfPath() . '/phpstan-baseline.neon', '');
 
@@ -199,7 +199,7 @@ class InitMonoRepoAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagePath()
+            packagePath: $this->actionDto->configs->getPackagesPath()
         );
         $this->rootComposerFileService->runComposerCommand([
             'require',

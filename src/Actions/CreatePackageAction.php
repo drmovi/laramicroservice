@@ -30,7 +30,7 @@ class CreatePackageAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagePath()
+            packagePath: $this->actionDto->configs->getPackagesPath()
         );
         $this->packageData->rootComposerFileService->runComposerCommand([
             'config',
@@ -57,7 +57,7 @@ class CreatePackageAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagePath()
+            packagePath: $this->actionDto->configs->getPackagesPath()
 
         );
     }
@@ -102,7 +102,7 @@ class CreatePackageAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagePath()
+            packagePath: $this->actionDto->configs->getPackagesPath()
 
         );
         if (ConstData::API_PACKAGE_NAME->name !== $this->packageData->packageName) {
