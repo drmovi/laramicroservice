@@ -7,7 +7,7 @@ use Symfony\Component\Console\Application;
 
 $application = new Application();
 
-$application->add(new \Drmovi\PackageGenerator\Commands\MonorepoInitCommand());
-$application->add(new \Drmovi\PackageGenerator\Commands\MonorepoPackageCreateCommand());
-$application->add(new \Drmovi\PackageGenerator\Commands\MonorepoPackageDeleteCommand());
+$application->add(new \Drmovi\MonorepoGenerator\Commands\MonorepoInitCommand());
+$application->add(new \Drmovi\MonorepoGenerator\Commands\MonorepoPackageCreateCommand());
+$application->add(new \Drmovi\MonorepoGenerator\Commands\MonorepoPackageDeleteCommand());
 $application->run();
