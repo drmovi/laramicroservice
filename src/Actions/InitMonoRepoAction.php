@@ -4,13 +4,11 @@ namespace Drmovi\MonorepoGenerator\Actions;
 
 use Drmovi\MonorepoGenerator\Contracts\Operation;
 use Drmovi\MonorepoGenerator\Dtos\ActionDto;
-use Drmovi\MonorepoGenerator\Dtos\PackageDto;
 use Drmovi\MonorepoGenerator\Enums\Commands;
 use Drmovi\MonorepoGenerator\Enums\Modes;
 use Drmovi\MonorepoGenerator\Factories\FrameworkOperationFactory;
 use Drmovi\MonorepoGenerator\Services\PhpstanNeonService;
 use Drmovi\MonorepoGenerator\Services\RootComposerFileService;
-use Drmovi\MonorepoGenerator\Traits\CopyStubFiles;
 use Drmovi\MonorepoGenerator\Utils\FileUtil;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -18,7 +16,6 @@ use Symfony\Component\Console\Input\ArrayInput;
 class InitMonoRepoAction implements Operation
 {
 
-    use CopyStubFiles;
 
     private RootComposerFileService $rootComposerFileService;
 
@@ -133,11 +130,6 @@ class InitMonoRepoAction implements Operation
         $this->copyStubFiles(
             source: 'devconf/phpunit.xml',
             destination: getcwd() . '/phpunit.xml',
-            composerName: $this->packageData->packageComposerName,
-            packageNamespace: $this->packageData->packageNamespace,
-            packageName: $this->packageData->packageName,
-            appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagesPath()
         );
     }
 
@@ -171,10 +163,9 @@ class InitMonoRepoAction implements Operation
 
     private function copyGitIgnoreFileToRoot(): void
     {
-        FileUtil::copyFile(
-            sourceFile: __DIR__ . '/../../stubs/devconf/.gitignore',
-            destinationFile: getcwd() . '/.gitignore',
-            replacements: []
+        $this->copyStubFiles(
+            source: __DIR__ . 'devconf/.gitignore',
+            destination: getcwd() . '/.gitignore',
         );
     }
 
@@ -184,11 +175,6 @@ class InitMonoRepoAction implements Operation
         $this->copyStubFiles(
             source: 'devconf/conf/phpstan.neon',
             destination: getcwd() . '/conf/phpstan.neon',
-            composerName: $this->packageData->packageComposerName,
-            packageNamespace: $this->packageData->packageNamespace,
-            packageName: $this->packageData->packageName,
-            appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagesPath()
         );
         FileUtil::makeFile(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getConfPath() . '/phpstan-baseline.neon', '');
 
@@ -217,11 +203,6 @@ class InitMonoRepoAction implements Operation
         $this->copyStubFiles(
             source: 'devconf/conf/psalm.xml',
             destination: getcwd() . '/conf/psalm.xml',
-            composerName: $this->packageData->packageComposerName,
-            packageNamespace: $this->packageData->packageNamespace,
-            packageName: $this->packageData->packageName,
-            appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagesPath()
         );
         $this->rootComposerFileService->runComposerCommand([
             'require',
@@ -230,6 +211,18 @@ class InitMonoRepoAction implements Operation
             'vimeo/psalm',
         ]);
         exec("./vendor/bin/psalm --config=./{$this->actionDto->configs->getConfPath()}/psalm.xml --set-baseline=psalm-baseline.xml --no-cache");
+    }
+
+
+    private function copyStubFiles(string $source, string $destination)
+    {
+        FileUtil::copyDirectory(
+            source: __DIR__ . '/../../stubs/' . $source,
+            destination: $destination,
+            replacements: [
+                '{{APP_PATH}}' => $this->actionDto->configs->getAppPath(),
+                '{{PACKAGES_PATH}}' => $this->actionDto->configs->getPackagesPath(),
+            ]);
     }
 
 

@@ -5,13 +5,10 @@ namespace Drmovi\MonorepoGenerator\Actions;
 use Drmovi\MonorepoGenerator\Enums\ConstData;
 use Drmovi\MonorepoGenerator\Enums\Modes;
 use Drmovi\MonorepoGenerator\Services\ComposerFileService;
-use Drmovi\MonorepoGenerator\Traits\CopyStubFiles;
 use Drmovi\MonorepoGenerator\Utils\FileUtil;
 
 class CreatePackageAction extends PackageAction
 {
-
-    use CopyStubFiles;
 
     protected function _exec(): void
     {
