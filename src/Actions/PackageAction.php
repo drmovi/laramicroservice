@@ -69,7 +69,7 @@ abstract class PackageAction implements Operation
 
     private function isSharedPackage(): bool
     {
-        return $this->actionDto->input->getArgument('shared');
+        return (bool)$this->actionDto->input->getArgument('shared');
     }
 
     protected function getPackageNamespace(string $packageName): string

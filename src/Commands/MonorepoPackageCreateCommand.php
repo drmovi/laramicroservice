@@ -6,6 +6,7 @@ use Composer\Console\Input\InputArgument;
 use Drmovi\MonorepoGenerator\Actions\CreatePackageAction;
 use Drmovi\MonorepoGenerator\Dtos\ActionDto;
 use Drmovi\MonorepoGenerator\Dtos\Configs;
+use Drmovi\MonorepoGenerator\Enums\Commands;
 use Drmovi\MonorepoGenerator\Services\ComposerFileService;
 use Drmovi\MonorepoGenerator\Services\ComposerService;
 use Drmovi\MonorepoGenerator\Services\RootComposerFileService;
@@ -13,6 +14,7 @@ use Drmovi\MonorepoGenerator\Utils\FileUtil;
 use Drmovi\MonorepoGenerator\Validators\PackageNameValidator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -36,6 +38,7 @@ class MonorepoPackageCreateCommand extends Command
         $composerService = new ComposerService($output);
         $configs = Configs::loadFromComposer(new RootComposerFileService(getcwd(), $composerService));
         $this->validateNameArg($input, $io, $configs);
+        $this->initRepoIfNot($configs, $io, $output);
         return (new CreatePackageAction(new ActionDto(
             command: $this,
             input: $input,
@@ -76,5 +79,14 @@ class MonorepoPackageCreateCommand extends Command
         ) {
             throw new \RuntimeException("Package with name $name already exists !!");
         }
+    }
+
+    private function initRepoIfNot(Configs $configs, SymfonyStyle $io, OutputInterface $output): void
+    {
+        if ($configs->isInitialized()) {
+            return;
+        }
+        $io->warning('Seems like you are trying to create a package in a non-initialized monorepo. Initializing now...');
+        $this->getApplication()->find(Commands::MONOREPO_INIT->value)->run(new ArrayInput([]), $output);
     }
 }

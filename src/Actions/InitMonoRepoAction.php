@@ -21,7 +21,6 @@ class InitMonoRepoAction implements Operation
 
     public function __construct(protected readonly ActionDto $actionDto)
     {
-        parent::__construct($actionDto);
         $this->rootComposerFileService = new RootComposerFileService(getcwd(), $this->actionDto->composerService);
     }
 
