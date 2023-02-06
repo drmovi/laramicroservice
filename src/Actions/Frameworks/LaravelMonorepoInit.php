@@ -136,11 +136,9 @@ class LaravelMonorepoInit implements Operation
             'nunomaduro/larastan',
             'psalm/plugin-laravel'
         ]);
-        exec("./vendor/bin/psalm-plugin enable -c {$this->actionDto->configs->getDevConfPath()}/psalm.xml psalm/plugin-laravel");
+        exec("./vendor/bin/psalm-plugin enable -c ./{$this->actionDto->configs->getDevConfPath()}/psalm.xml psalm/plugin-laravel");
         $phpstanNeonFileService = new PhpstanNeonService($this->actionDto->configs->getDevConfPath());
-        $phpstanNeonFileService->addExtensionRefs(['./vendor/nunomaduro/larastan/extension.neon']);
+        $phpstanNeonFileService->addExtensionRefs(['../vendor/nunomaduro/larastan/extension.neon']);
         $phpstanNeonFileService->addExcludePaths(["../{$this->actionDto->configs->getAppPath()}/bootstrap/cache", "../{$this->actionDto->configs->getAppPath()}/storage"]);
-        exec("./vendor/bin/psalm --config=./{$this->actionDto->configs->getDevConfPath()}/psalm.xml --set-baseline=psalm-baseline.xml --no-cache");
-        exec("./vendor/bin/phpstan analyse --memory-limit=2G --configuration={$this->actionDto->configs->getDevConfPath()}/phpstan.neon --allow-empty-baseline --generate-baseline={$this->actionDto->configs->getDevConfPath()}/phpstan-baseline.neon");
     }
 }

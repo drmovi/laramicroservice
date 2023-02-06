@@ -25,9 +25,7 @@ class FileUtil
             $sourceFile = $source . DIRECTORY_SEPARATOR . $file;
             $destinationFile = $destination . DIRECTORY_SEPARATOR . str_replace(array_keys($replacements), array_values($replacements), $file);
             if (is_dir($sourceFile)) {
-                if (!is_dir($destinationFile)) {
-                    mkdir($destinationFile, 0777, true);
-                }
+                self::makeDirectory($destinationFile);
                 self::copyDirectory($sourceFile, $destinationFile, $replacements);
             } else {
                 self::copyFile($sourceFile, $destinationFile, $replacements);
@@ -43,9 +41,7 @@ class FileUtil
 
     public static function copyFile(string $sourceFile, string $destinationFile, array $replacements): void
     {
-        if (!is_dir(dirname($destinationFile))) {
-            mkdir(dirname($destinationFile), 0777, true);
-        }
+        self::makeDirectory(dirname($destinationFile));
         $content = file_get_contents($sourceFile);
         $content = str_replace(array_keys($replacements), array_values($replacements), $content);
         file_put_contents($destinationFile, $content);
@@ -74,5 +70,12 @@ class FileUtil
     public static function removeFile(string $filePath): void
     {
         @unlink($filePath);
+    }
+
+    public static function makeDirectory(string $string): void
+    {
+        if (!is_dir($string)) {
+            mkdir($string, 0777, true);
+        }
     }
 }

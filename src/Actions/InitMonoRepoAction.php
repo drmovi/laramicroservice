@@ -46,10 +46,12 @@ class InitMonoRepoAction implements Operation
     {
         $this->setMonoRepoConfigs();
         $this->copyGitIgnoreFileToRoot();
+        $this->createEmptyPackagesDirectory();
         $this->createRootK8sFiles();
         $this->installPhpunit();
         $this->installPhpstan();
         $this->installPsalm();
+        $this->addMakeFile();
         $this->installPackageBoundariesPlugin();
         $this->installSharedPackages();
     }
@@ -117,6 +119,7 @@ class InitMonoRepoAction implements Operation
     {
         FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath());
         FileUtil::removeFile(getcwd() . DIRECTORY_SEPARATOR . 'phpunit.xml');
+        FileUtil::removeFile(getcwd() . DIRECTORY_SEPARATOR . 'makefile');
     }
 
     private function installPhpunit(): void
@@ -215,6 +218,7 @@ class InitMonoRepoAction implements Operation
             replacements: [
                 '{{APP_PATH}}' => $this->actionDto->configs->getAppPath(),
                 '{{PACKAGES_PATH}}' => $this->actionDto->configs->getPackagesPath(),
+                '{{DEV_CONF_PATH}}' => $this->actionDto->configs->getDevConfPath(),
             ]);
     }
 
@@ -233,6 +237,19 @@ class InitMonoRepoAction implements Operation
     {
         FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getPackagesPath());
         FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getSharedPackagesPath());
+    }
+
+    private function addMakeFile(): void
+    {
+        $this->copyStubFile(
+            source: 'devconf/makefile',
+            destination: getcwd() . '/makefile',
+        );
+    }
+
+    private function createEmptyPackagesDirectory():void
+    {
+        FileUtil::makeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getPackagesPath());
     }
 
 

@@ -47,7 +47,7 @@ class NeonFileService implements State
         if (!$this->canOperate()) {
             return;
         }
-        file_put_contents($this->path, Neon::encode($content));
+        file_put_contents($this->path, Neon::encode($content,true));
     }
 
 
