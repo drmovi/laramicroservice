@@ -138,4 +138,14 @@ class ComposerFileService implements State
     {
         return file_exists($this->path);
     }
+
+    public function setName($name):void
+    {
+        if (!$this->canOperate()) {
+            return;
+        }
+        $data = $this->getContent();
+        $data['name'] = $name;
+        $this->setContent($data);
+    }
 }
