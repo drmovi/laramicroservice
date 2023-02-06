@@ -60,6 +60,7 @@ class LaravelMonorepoInit implements Operation
     {
         $name = "{$this->actionDto->configs->getVendorName()}/{$this->actionDto->configs->getAppPath()}";
         $this->appComposerService->setName($name);
+        $this->appComposerService->setVersion('1.0');
         $this->rootComposerService->addRepository($this->actionDto->configs->getFramework(), './' . $this->actionDto->configs->getAppPath());
         $this->rootComposerService->runComposerCommand(['require', $name, '--with-all-dependencies', '--no-interaction']);
     }

@@ -92,6 +92,9 @@ class CreatePackageAction extends PackageAction
             return;
         }
         $apiPackageAbsolutePath = $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->value;
+        if (!FileUtil::directoryExist($apiPackageAbsolutePath)) {
+            return;
+        }
         $this->copyStubFiles(
             source: "frameworks/{$this->actionDto->configs->getFramework()}/shared/services",
             destination: $apiPackageAbsolutePath . '/services',

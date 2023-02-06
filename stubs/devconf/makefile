@@ -21,7 +21,7 @@ test-with-html-coverage:
 	@php -dxdebug.mode=coverage ./vendor/bin/phpunit --configuration ./phpunit.xml --coverage-html ./coverage
 
 monorepo:
-	@./vendor/bin/dmg $(filter-out $@,$(MAKECMDGOALS))
+	@./vendor/bin/dmg monorepo:$(filter-out $@,$(MAKECMDGOALS))
 
 style-fix:
 

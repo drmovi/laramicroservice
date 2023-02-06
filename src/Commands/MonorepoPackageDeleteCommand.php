@@ -26,7 +26,9 @@ class MonorepoPackageDeleteCommand extends Command
 {
     protected function configure(): void
     {
-        $this->addArgument('name', InputArgument::OPTIONAL, 'Name of your package', null);
+        $this
+            ->addArgument('name', InputArgument::OPTIONAL, 'Name of your package', null)
+            ->addArgument('shared', InputArgument::OPTIONAL, 'Package is shared one', null);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -34,7 +36,8 @@ class MonorepoPackageDeleteCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $composerService = new ComposerService($output);
         $configs = Configs::loadFromComposer(new RootComposerFileService(getcwd(), $composerService));
-        $this->validateNameArg($input, $io, $configs);
+        $this->checkPackageName($input, $io, $configs);
+        $this->checkIfPackageIsShared($input, $configs);
         return (new DeletePackageAction(new ActionDto(
             command: $this,
             input: $input,
@@ -46,33 +49,39 @@ class MonorepoPackageDeleteCommand extends Command
     }
 
 
-    private function validateNameArg(InputInterface $input, SymfonyStyle $io, Configs $configs): string
+    private function checkPackageName(InputInterface $input, SymfonyStyle $io, Configs $configs): void
     {
         $name = $input->getArgument('name');
         if (!is_null($name)) {
             try {
                 $this->validatePackageName($name, $configs, $input);
-                return $name;
+                return;
             } catch (\Throwable $e) {
                 $io->error($e->getMessage());
             }
         }
-        return $io->ask('Name of your package', null, function ($answer, $configs, $input) {
+        $input->setArgument('name', $io->ask('Name of your package', null, function ($answer, $configs, $input) {
             $this->validatePackageName($answer, $configs, $input);
             return $answer;
-        });
+        }));
     }
 
-    private function validatePackageName(string $name, Configs $configs, InputInterface $input): void
+    private function validatePackageName(string $name, Configs $configs): void
     {
         if (FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getPackagesPath() . DIRECTORY_SEPARATOR . $name)) {
             return;
         }
         if (FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . $name)) {
-            $input->setArgument('shared', true);
             return;
         }
         throw new \RuntimeException("Package with name $name already exists !!");
+    }
+
+    private function checkIfPackageIsShared(InputInterface $input, Configs $configs): void
+    {
+        if (FileUtil::directoryExist(getcwd() . DIRECTORY_SEPARATOR . $configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . $input->getArgument('name'))) {
+            $input->setArgument('shared', true);
+        }
     }
 
 }
