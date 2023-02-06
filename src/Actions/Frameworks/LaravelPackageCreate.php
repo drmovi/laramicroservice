@@ -5,6 +5,7 @@ namespace Drmovi\MonorepoGenerator\Actions\Frameworks;
 use Drmovi\MonorepoGenerator\Contracts\Operation;
 use Drmovi\MonorepoGenerator\Dtos\PackageDto;
 use Drmovi\MonorepoGenerator\Dtos\PhpunitTestSuiteItem;
+use Symfony\Component\Console\Command\Command;
 
 class LaravelPackageCreate implements Operation
 {
@@ -17,6 +18,7 @@ class LaravelPackageCreate implements Operation
     public function exec(): int
     {
         $this->addTestDirectoriesToPhpUnitXml();
+        return Command::SUCCESS;
     }
 
     public function backup(): void

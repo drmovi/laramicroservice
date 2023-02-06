@@ -3,14 +3,13 @@
 namespace Drmovi\MonorepoGenerator\Services;
 
 use Drmovi\MonorepoGenerator\Dtos\ActionDto;
-use Drmovi\MonorepoGenerator\Dtos\PackageDto;
 
 class LaravelAppService
 {
 
     private mixed $app;
 
-    private static self $instance;
+    private static ?self  $instance = null;
 
     private function __construct(private readonly ActionDto $actionDto)
     {

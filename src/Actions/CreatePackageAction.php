@@ -107,7 +107,7 @@ class CreatePackageAction extends PackageAction
         }
         (new ComposerFileService($apiPackageAbsolutePath, $this->actionDto->composerService))
             ->addPsr4Namespace([
-                $this->getPackageNamespace(ConstData::API_PACKAGE_NAME->value).'\\' => $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->value . '/services/'
+                $this->getPackageNamespace(ConstData::API_PACKAGE_NAME->value).'\Services\\' => $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->value . '/services/'
             ]);
     }
 }
