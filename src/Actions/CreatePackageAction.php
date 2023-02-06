@@ -82,7 +82,7 @@ class CreatePackageAction extends PackageAction
 
     private function canAddK8s(): bool
     {
-        return $this->actionDto->configs->getMode() !== Modes::MICROSERVICE->value || $this->packageData->isSharedPackage;
+        return $this->actionDto->configs->getMode() === Modes::MICROSERVICE->value && !$this->packageData->isSharedPackage;
     }
 
 
