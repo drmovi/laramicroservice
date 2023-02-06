@@ -115,7 +115,7 @@ class InitMonoRepoAction implements Operation
 
     private function removeDevconfFiles(): void
     {
-        FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . 'conf');
+        FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath());
         FileUtil::removeFile(getcwd() . DIRECTORY_SEPARATOR . 'phpunit.xml');
     }
 
