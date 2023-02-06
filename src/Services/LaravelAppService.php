@@ -9,12 +9,13 @@ class LaravelAppService
 
     private mixed $app;
 
-    private static ?self  $instance = null;
+    private static ?self $instance = null;
 
     private function __construct(private readonly ActionDto $actionDto)
     {
-        $this->app = require $this->actionDto->configs->getAppPath() . '/bootstrap/app.php';
-        $this->app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+        $app = require $this->actionDto->configs->getAppPath() . '/bootstrap/app.php';
+        $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+        $this->app = $app;
     }
 
     public static function instance(ActionDto $actionDto): self
@@ -27,6 +28,6 @@ class LaravelAppService
 
     public function artisan(string $command, array $args = []): void
     {
-        $this->app->artisan($command, $args);
+        $this->app->make('Illuminate\Contracts\Console\Kernel')->call($command, $args);
     }
 }
