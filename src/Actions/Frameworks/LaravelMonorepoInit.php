@@ -58,7 +58,7 @@ class LaravelMonorepoInit implements Operation
 
     private function addAppRepositoryToRootComposerFile(): void
     {
-        $this->appComposerService->setName("{$this->actionDto->configs->getVendorName()}/{$this->actionDto->configs->getFramework()}");
+        $this->appComposerService->setName("{$this->actionDto->configs->getVendorName()}/{$this->actionDto->configs->getAppPath()}");
         $this->rootComposerService->addRepository($this->actionDto->configs->getFramework(), './' . $this->actionDto->configs->getAppPath());
     }
 
