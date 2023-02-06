@@ -44,14 +44,14 @@ class InitMonoRepoAction implements Operation
 
     protected function _exec(): void
     {
-//        $this->setMonoRepoConfigs();
-//        $this->copyGitIgnoreFileToRoot();
-//        $this->createRootK8sFiles();
-//        $this->installPhpunit();
-//        $this->installPhpstan();
-//        $this->installPsalm();
-//        $this->installPackageBoundariesPlugin();
-//        $this->installSharedPackages();
+        $this->setMonoRepoConfigs();
+        $this->copyGitIgnoreFileToRoot();
+        $this->createRootK8sFiles();
+        $this->installPhpunit();
+        $this->installPhpstan();
+        $this->installPsalm();
+        $this->installPackageBoundariesPlugin();
+        $this->installSharedPackages();
     }
 
 

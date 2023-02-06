@@ -10,38 +10,50 @@ class PhpUnitXmlFileService implements State
 {
     private ?string $backup = null;
 
-    public function __construct(private readonly string $path)
+    public function __construct(private string $path)
     {
+        $this->path = $this->path . DIRECTORY_SEPARATOR . 'phpunit.xml';
     }
 
     public function backup(): void
     {
-        $path = $this->path . DIRECTORY_SEPARATOR . 'phpunit.xml';
-        if (file_exists($path)) {
-            $this->backup = file_get_contents($path);
+        if (!$this->canOperate()) {
+            return;
         }
+        $this->backup = file_get_contents($this->path);
     }
 
     public function rollback(): void
     {
-        if ($this->backup) {
-            file_put_contents($this->path . DIRECTORY_SEPARATOR . 'phpunit.xml', $this->backup);
+        if (!$this->canOperate()) {
+            return;
         }
+        file_put_contents($this->path, $this->backup);
+
     }
 
-    public function getContent(): Crawler
+    public function getContent(): ?Crawler
     {
-        return new Crawler(file_get_contents($this->path . DIRECTORY_SEPARATOR . 'phpunit.xml'));
+        if (!$this->canOperate()) {
+            return null;
+        }
+        return new Crawler(file_get_contents($this->path));
     }
 
     public function setContent(Crawler $content): void
     {
-        file_put_contents($this->path . DIRECTORY_SEPARATOR . 'phpunit.xml', $content->getNode(0)->ownerDocument->saveXML());
+        if (!$this->canOperate()) {
+            return;
+        }
+        file_put_contents($this->path, $content->getNode(0)->ownerDocument->saveXML());
     }
 
 
     public function addTestDirectories(PhpunitTestSuiteItem ...$phpunitTestSuiteItems): void
     {
+        if (!$this->canOperate()) {
+            return;
+        }
         $crawler = $this->getContent();
         foreach ($phpunitTestSuiteItems as $phpunitTestSuiteItem) {
             $crawler->filterXPath('//phpunit/testsuites/testsuite[@name="' . $phpunitTestSuiteItem->testSuiteName . '"]')->each(function (Crawler $node) use ($crawler, $phpunitTestSuiteItem) {
@@ -57,6 +69,9 @@ class PhpUnitXmlFileService implements State
 
     public function removeTestDirectories(PhpunitTestSuiteItem ...$phpunitTestSuiteItems): void
     {
+        if (!$this->canOperate()) {
+            return;
+        }
         $crawler = $this->getContent();
         foreach ($phpunitTestSuiteItems as $phpunitTestSuiteItem) {
             $crawler->filterXPath('//phpunit/testsuites/testsuite//*')->each(function (Crawler $node) use ($phpunitTestSuiteItem) {
@@ -66,6 +81,11 @@ class PhpUnitXmlFileService implements State
             });
         }
         $this->setContent($crawler);
+    }
+
+    private function canOperate(): bool
+    {
+        return file_exists($this->path);
     }
 
 }

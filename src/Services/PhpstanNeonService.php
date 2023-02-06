@@ -5,13 +5,16 @@ namespace Drmovi\MonorepoGenerator\Services;
 class PhpstanNeonService extends NeonFileService
 {
 
-    public function __construct(private readonly string $path)
+    public function __construct(protected readonly string $path)
     {
         parent::__construct($this->path . DIRECTORY_SEPARATOR . 'phpstan.neon');
     }
 
     public function addExtensionRefs(array $paths): void
     {
+        if (!$this->canOperate()) {
+            return;
+        }
         $content = $this->getContent();
         foreach ($paths as $path) {
             $content['includes'][] = $path;
@@ -21,6 +24,9 @@ class PhpstanNeonService extends NeonFileService
 
     public function addExcludePaths(array $paths): void
     {
+        if (!$this->canOperate()) {
+            return;
+        }
         $content = $this->getContent();
         foreach ($paths as $path) {
             $content['parameters']['excludePaths'][] = $path;
@@ -28,8 +34,11 @@ class PhpstanNeonService extends NeonFileService
         $this->setContent($content);
     }
 
-    public function addRules(array $rules):void
+    public function addRules(array $rules): void
     {
+        if (!$this->canOperate()) {
+            return;
+        }
         $content = $this->getContent();
         foreach ($rules as $rule) {
             $content['rules'][$rule] = true;

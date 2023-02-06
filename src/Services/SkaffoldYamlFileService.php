@@ -10,37 +10,50 @@ class SkaffoldYamlFileService implements State
 
     private ?string $backup = null;
 
-    public function __construct(private readonly string $path)
+    public function __construct(private string $path)
     {
+        $this->path = $this->path . DIRECTORY_SEPARATOR . 'skaffold.yaml';
     }
 
     public function backup(): void
     {
-        $path = $this->path . DIRECTORY_SEPARATOR . 'skaffold.yaml';
-        if (file_exists($path)) {
-            $this->backup = file_get_contents($path);
+        if (!$this->canOperate()) {
+            return;
         }
+        $this->backup = file_get_contents($this->path);
+
     }
 
     public function rollback(): void
     {
-        if ($this->backup) {
-            file_put_contents($this->path . DIRECTORY_SEPARATOR . 'skaffold.yaml', $this->backup);
+        if (!$this->canOperate()) {
+            return;
         }
+        file_put_contents($this->path, $this->backup);
+
     }
 
-    public function getContent(): array
+    public function getContent(): ?array
     {
-        return Yaml::parseFile($this->path . DIRECTORY_SEPARATOR . 'skaffold.yaml');
+        if (!$this->canOperate()) {
+            return null;
+        }
+        return Yaml::parseFile($this->path);
     }
 
     public function setContent(array $content): void
     {
-        file_put_contents($this->path . DIRECTORY_SEPARATOR . 'skaffold.yaml', Yaml::dump($content));
+        if (!$this->canOperate()) {
+            return;
+        }
+        file_put_contents($this->path, Yaml::dump($content));
     }
 
     public function addRequire(string $path): void
     {
+        if (!$this->canOperate()) {
+            return;
+        }
         $content = $this->getContent();
         $content['requires'][]['path'] = "./$path";
         $this->setContent($content);
@@ -48,10 +61,19 @@ class SkaffoldYamlFileService implements State
 
     public function removeRequire(string $path): void
     {
+        if (!$this->canOperate()) {
+            return;
+        }
         $content = $this->getContent();
         $requires = array_filter($content['requires'], fn($require) => $require['path'] !== "./$path");
         $content['requires'] = $requires;
         $this->setContent($content);
+    }
+
+
+    private function canOperate(): bool
+    {
+        return file_exists($this->path);
     }
 
 }
