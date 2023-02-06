@@ -13,8 +13,8 @@ class LaravelAppService
 
     private function __construct(private readonly ActionDto $actionDto)
     {
-        $app = require $this->actionDto->configs->getAppPath() . '/bootstrap/app.php';
-        $this->app = $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+        $this->app = require $this->actionDto->configs->getAppPath() . '/bootstrap/app.php';
+        $this->app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
     }
 
     public static function instance(ActionDto $actionDto): self
