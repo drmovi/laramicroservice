@@ -37,22 +37,7 @@ abstract class PackageAction implements Operation
 
     }
 
-    public function exec(): int
-    {
-        $frameworkPackageOperation = (new FrameworkOperationFactory())->make(PackageDto::loadFromActionDto($this->actionDto, $this->packageData));
-        $this->backup();
-        $frameworkPackageOperation->backup();
-        try {
-            $this->_exec();
-            $frameworkPackageOperation->exec();
-            return Command::SUCCESS;
-        } catch (\Throwable $e) {
-            $frameworkPackageOperation->rollback();
-            $this->rollback();
-            $this->actionDto->io->error($e->getMessage());
-            return Command::FAILURE;
-        }
-    }
+
 
 
     abstract protected function _exec(): void;

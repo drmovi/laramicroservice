@@ -2,14 +2,34 @@
 
 namespace Drmovi\MonorepoGenerator\Actions;
 
+use Drmovi\MonorepoGenerator\Dtos\PackageDto;
 use Drmovi\MonorepoGenerator\Enums\ConstData;
 use Drmovi\MonorepoGenerator\Enums\Modes;
+use Drmovi\MonorepoGenerator\Factories\FrameworkOperationFactory;
 use Drmovi\MonorepoGenerator\Services\ComposerFileService;
 use Drmovi\MonorepoGenerator\Utils\FileUtil;
+use Symfony\Component\Console\Command\Command;
 
 class CreatePackageAction extends PackageAction
 {
 
+
+    public function exec(): int
+    {
+        $frameworkPackageOperation = (new FrameworkOperationFactory())->make(PackageDto::loadFromActionDto($this->actionDto, $this->packageData));
+        $this->backup();
+        $frameworkPackageOperation->backup();
+        try {
+            $this->_exec();
+            $frameworkPackageOperation->exec();
+            return Command::SUCCESS;
+        } catch (\Throwable $e) {
+            $frameworkPackageOperation->rollback();
+            $this->rollback();
+            $this->actionDto->io->error($e->getMessage());
+            return Command::FAILURE;
+        }
+    }
     protected function _exec(): void
     {
         $this->createPackage();
