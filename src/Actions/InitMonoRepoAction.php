@@ -218,6 +218,7 @@ class InitMonoRepoAction implements Operation
             replacements: [
                 '{{APP_PATH}}' => $this->actionDto->configs->getAppPath(),
                 '{{PACKAGES_PATH}}' => $this->actionDto->configs->getPackagesPath(),
+                '{{SHARED_PACKAGES_PATH}}' => $this->actionDto->configs->getSharedPackagesPath(),
                 '{{DEV_CONF_PATH}}' => $this->actionDto->configs->getDevConfPath(),
             ]);
     }

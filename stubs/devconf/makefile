@@ -1,15 +1,15 @@
 
 phpstan:
-	@./vendor/bin/phpstan analyse --memory-limit=2G --configuration={{DEV_CONF_PATH}}/phpstan.neon
+	@./vendor/bin/phpstan analyse --memory-limit=2G --configuration=devconf/phpstan.neon
 
 phpstan-baseline:
-	@./vendor/bin/phpstan analyse --memory-limit=2G --configuration={{DEV_CONF_PATH}}/phpstan.neon --allow-empty-baseline --generate-baseline={{DEV_CONF_PATH}}/phpstan-baseline.neon
+	@./vendor/bin/phpstan analyse --memory-limit=2G --configuration=devconf/phpstan.neon --allow-empty-baseline --generate-baseline=devconf/phpstan-baseline.neon
 
 psalm:
-	@./vendor/bin/psalm --config=./{{DEV_CONF_PATH}}/psalm.xml --update-baseline --set-baseline=psalm-baseline.xml --no-cache
+	@./vendor/bin/psalm --config=./devconf/psalm.xml --use-baseline=psalm-baseline.xml --no-cache
 
 psalm-baseline:
-	@./vendor/bin/psalm --config=./{{DEV_CONF_PATH}}/psalm.xml --update-baseline --no-cache
+	@./vendor/bin/psalm --config=./devconf/psalm.xml --set-baseline=psalm-baseline.xml --no-cache
 
 test:
 	@./vendor/bin/phpunit --configuration ./phpunit.xml
@@ -35,4 +35,4 @@ pipeline: lint test test-with-clover-coverage
 
 
 artisan:
-	@php ./{{APP_PATH}}/artisan "$@"
+	@php ./app/artisan "$@"

@@ -6,6 +6,7 @@ parameters:
     paths:
          - ../{{APP_PATH}}
          - ../{{PACKAGES_PATH}}
+         - ../{{SHARED_PACKAGES_PATH}}
 
     excludePaths:
         - ../{{APP_PATH}}/vendor

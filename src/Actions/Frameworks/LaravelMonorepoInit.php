@@ -62,6 +62,12 @@ class LaravelMonorepoInit implements Operation
         $this->appComposerService->setName($name);
         $this->appComposerService->setVersion('1.0');
         $this->rootComposerService->addRepository($this->actionDto->configs->getFramework(), './' . $this->actionDto->configs->getAppPath());
+        $appPsr4DevNamespaces = $this->appComposerService->getPsr4Namespace(null, true);
+        $devNamespaces = [];
+        foreach ($appPsr4DevNamespaces as $namespace => $path) {
+            $devNamespaces[$namespace] = $this->actionDto->configs->getAppPath() . '/' . $path;
+        }
+        $this->rootComposerService->addPsr4Namespace($devNamespaces, true);
         $this->rootComposerService->runComposerCommand(['require', $name, '--with-all-dependencies', '--no-interaction']);
     }
 
@@ -70,6 +76,7 @@ class LaravelMonorepoInit implements Operation
     {
         $this->rootComposerService->addScripts([
             'post-autoload-dump' => [
+                "rm -rf ./app/vendor && ln -s ./../vendor ./app",
                 "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
                 "@php {$this->actionDto->configs->getAppPath()}/artisan package:discover --ansi"
             ],
@@ -142,7 +149,6 @@ class LaravelMonorepoInit implements Operation
         ]);
         exec("./vendor/bin/psalm-plugin enable -c ./{$this->actionDto->configs->getDevConfPath()}/psalm.xml psalm/plugin-laravel");
         $phpstanNeonFileService = new PhpstanNeonService($this->actionDto->configs->getDevConfPath());
-        $phpstanNeonFileService->addExtensionRefs(['../vendor/nunomaduro/larastan/extension.neon']);
         $phpstanNeonFileService->addExcludePaths(["../{$this->actionDto->configs->getAppPath()}/bootstrap/cache", "../{$this->actionDto->configs->getAppPath()}/storage"]);
     }
 }
