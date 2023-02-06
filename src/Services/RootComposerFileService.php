@@ -24,7 +24,7 @@ class RootComposerFileService extends ComposerFileService
             $this->composer->runComposerCommand([
                 'config',
                 '--working-dir',
-                $this->path,
+                dirname($this->path),
                 "extra.monorepo.$key",
                 $value
             ]);

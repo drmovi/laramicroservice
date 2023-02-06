@@ -33,7 +33,7 @@ class ComposerFileService implements State
             return;
         }
 
-        file_put_contents($this->path , $this->backup);
+        file_put_contents($this->path, $this->backup);
 
     }
 
@@ -104,7 +104,7 @@ class ComposerFileService implements State
 
     public function addRepository(string $name, string $url, bool $dev = false): void
     {
-        if(!$this->canOperate()) {
+        if (!$this->canOperate()) {
             return;
         }
         $this->composer->runComposerCommand([
@@ -112,7 +112,7 @@ class ComposerFileService implements State
             "repositories.$name",
             json_encode(['type' => 'path', 'url' => $url]),
             '--working-dir',
-            $this->path,
+            dirname($this->path),
             '--no-interaction'
         ]);
         $repoComposerFile = new ComposerFileService($url, $this->composer);
@@ -120,7 +120,7 @@ class ComposerFileService implements State
             'require',
             $repoComposerFile->getName(),
             '--working-dir',
-            $this->path,
+            dirname($this->path),
             '--no-interaction'
         ];
         if ($dev) {
@@ -131,7 +131,7 @@ class ComposerFileService implements State
 
     public function runComposerCommand(array $args)
     {
-        $this->composer->runComposerCommand($args + ['--working-dir', $this->path]);
+        $this->composer->runComposerCommand($args + ['--working-dir', dirname($this->path)]);
     }
 
     protected function canOperate(): bool
