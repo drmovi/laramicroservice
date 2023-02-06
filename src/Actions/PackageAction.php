@@ -25,7 +25,7 @@ abstract class PackageAction implements Operation
             rootComposerFileService: new ComposerFileService(getcwd(), $this->actionDto->composerService),
             rootPhpunitXmlFileService: new PhpUnitXmlFileService(getcwd()),
             rootSkaffoldYamlFileService: new SkaffoldYamlFileService(getcwd()),
-            phpstanNeonFileService: new PhpstanNeonService(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getConfPath()),
+            phpstanNeonFileService: new PhpstanNeonService(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath()),
             packageName: $packageName = $this->actionDto->input->getArgument('name'),
             packageRelativePath: $packageRelativePath = ($this->isSharedPackage() ? $this->actionDto->configs->getSharedPackagesPath() : $this->actionDto->configs->getPackagesPath()) . DIRECTORY_SEPARATOR . $packageName,
             packageAbsolutePath: getcwd() . DIRECTORY_SEPARATOR . $packageRelativePath,

@@ -91,7 +91,7 @@ class CreatePackageAction extends PackageAction
         if (!$this->packageData->isSharedPackage) {
             return;
         }
-        $apiPackageAbsolutePath = $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->name;
+        $apiPackageAbsolutePath = $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->value;
         $this->copyStubFiles(
             source: "frameworks/{$this->actionDto->configs->getFramework()}/shared/services",
             destination: $apiPackageAbsolutePath . '/services',
@@ -102,12 +102,12 @@ class CreatePackageAction extends PackageAction
             packagePath: $this->actionDto->configs->getPackagesPath()
 
         );
-        if (ConstData::API_PACKAGE_NAME->name !== $this->packageData->packageName) {
+        if (ConstData::API_PACKAGE_NAME->value !== $this->packageData->packageName) {
             return;
         }
         (new ComposerFileService($apiPackageAbsolutePath, $this->actionDto->composerService))
             ->addPsr4Namespace([
-                $this->getPackageNamespace(ConstData::API_PACKAGE_NAME->name) => $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->name . '/services'
+                $this->getPackageNamespace(ConstData::API_PACKAGE_NAME->value).'\\' => $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->value . '/services/'
             ]);
     }
 }

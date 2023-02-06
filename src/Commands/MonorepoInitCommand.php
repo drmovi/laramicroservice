@@ -32,7 +32,7 @@ class MonorepoInitCommand extends Command
             ->addArgument('framework', InputArgument::OPTIONAL, 'Framework app to install e.g. laravel', null)
             ->addArgument('mode', InputArgument::OPTIONAL, 'Monorepo mode e.g microservice', null)
             ->addArgument('app_path', InputArgument::OPTIONAL, 'Path to which framework app will be installed', null)
-            ->addArgument('conf_path', InputArgument::OPTIONAL, 'Path which development configuration files will be added e.g. phpstan.neon', null)
+            ->addArgument('dev_conf_path', InputArgument::OPTIONAL, 'Path which development configuration files will be added e.g. phpstan.neon', null)
             ->addArgument('packages_path', InputArgument::OPTIONAL, 'Path that will contains all packages or services', null)
             ->addArgument('shared_packages_path', InputArgument::OPTIONAL, 'Path that will contains all shared packages', null)
             ->addArgument('shared_packages', InputArgument::OPTIONAL, 'Comma separated list of shared packages stubs to be added', null);
@@ -54,6 +54,7 @@ class MonorepoInitCommand extends Command
             if (!$validator->validate($answer)) {
                 throw new \RuntimeException($validator->getErrorMessage());
             }
+            return $answer;
         }));
         $input->setArgument('framework', $io->choice('What\'s your framework?', Frameworks::valuesToArray(), Frameworks::LARAVEL->value));
         $input->setArgument('mode', $io->choice('What\'s your project type', Modes::valuesToArray(), Modes::MICROSERVICE->value));
@@ -62,18 +63,21 @@ class MonorepoInitCommand extends Command
             if (!$validator->validate($answer)) {
                 throw new \RuntimeException($validator->getErrorMessage());
             }
+            return $answer;
         }));
-        $input->setArgument('conf_path', $io->ask('What\'s your desired development configuration path "will contain phpstan and psalm files"', 'devconf', function ($answer) {
+        $input->setArgument('dev_conf_path', $io->ask('What\'s your desired development configuration path "will contain phpstan and psalm files"', 'devconf', function ($answer) {
             $validator = new PathValidator();
             if (!$validator->validate($answer)) {
                 throw new \RuntimeException($validator->getErrorMessage());
             }
+            return $answer;
         }));
         $input->setArgument('packages_path', $io->ask('What\'s your desired packages path', 'packages', function ($answer) {
             $validator = new PathValidator();
             if (!$validator->validate($answer)) {
                 throw new \RuntimeException($validator->getErrorMessage());
             }
+            return $answer;
         }));
 
         $input->setArgument('shared_packages_path', $io->ask('What\'s your desired packages path', 'shared', function ($answer) use ($input) {
@@ -84,6 +88,7 @@ class MonorepoInitCommand extends Command
             if ($answer === $input->getArgument('packages_path')) {
                 throw new \RuntimeException('Shared packages path cannot be the same as packages path');
             }
+            return $answer;
         }));
         $io->note('a shared package named ' . ConstData::API_PACKAGE_NAME->value . ' will be added to shard packages path and will contains all shared code from all packages');
         $input->setArgument('shared_packages', ConstData::API_PACKAGE_NAME->value);

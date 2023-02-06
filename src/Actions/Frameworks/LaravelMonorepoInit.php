@@ -135,8 +135,8 @@ class LaravelMonorepoInit implements Operation
             'nunomaduro/larastan',
             'psalm/plugin-laravel'
         ]);
-        exec("./vendor/bin/psalm-plugin enable -c {$this->actionDto->configs->getConfPath()}/psalm.xml psalm/plugin-laravel");
-        $phpstanNeonFileService = new PhpstanNeonService($this->actionDto->configs->getConfPath());
+        exec("./vendor/bin/psalm-plugin enable -c {$this->actionDto->configs->getDevConfPath()}/psalm.xml psalm/plugin-laravel");
+        $phpstanNeonFileService = new PhpstanNeonService($this->actionDto->configs->getDevConfPath());
         $phpstanNeonFileService->addExtensionRefs( ['./vendor/nunomaduro/larastan/extension.neon']);
         $phpstanNeonFileService->addExcludePaths(["../{$this->actionDto->configs->getAppPath()}/bootstrap/cache", "../{$this->actionDto->configs->getAppPath()}/storage"]);
     }

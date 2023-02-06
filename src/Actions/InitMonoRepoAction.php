@@ -64,6 +64,7 @@ class InitMonoRepoAction implements Operation
             'vendor_name' => $this->actionDto->input->getArgument('vendor_name'),
             'framework' => $this->actionDto->input->getArgument('framework'),
             'mode' => $this->actionDto->input->getArgument('mode'),
+            'dev_conf_path' => $this->actionDto->input->getArgument('dev_conf_path'),
         ]);
     }
 
@@ -85,8 +86,8 @@ class InitMonoRepoAction implements Operation
         if ($this->actionDto->configs->getMode() !== Modes::MICROSERVICE->value) {
             return;
         }
-        FileUtil::copyDirectory(
-            source: __DIR__ . '/../../stubs/devops/root',
+        $this->copyStubFiles(
+            source: 'devops/root',
             destination: getcwd()
         );
     }
@@ -153,7 +154,7 @@ class InitMonoRepoAction implements Operation
             true,
         ]);
 
-        (new PhpstanNeonService(getcwd() . '/conf'))->addRules([
+        (new PhpstanNeonService(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath()))->addRules([
             'Drmovi\PackageBoundaries\PackageBoundaries'
         ]);
 
@@ -163,7 +164,7 @@ class InitMonoRepoAction implements Operation
     private function copyGitIgnoreFileToRoot(): void
     {
         $this->copyStubFiles(
-            source: __DIR__ . 'devconf/.gitignore',
+            source: 'devconf/.gitignore',
             destination: getcwd() . '/.gitignore',
         );
     }
@@ -173,9 +174,9 @@ class InitMonoRepoAction implements Operation
 
         $this->copyStubFiles(
             source: 'devconf/conf/phpstan.neon',
-            destination: getcwd() . '/conf/phpstan.neon',
+            destination: getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath() . '/phpstan.neon',
         );
-        FileUtil::makeFile(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getConfPath() . '/phpstan-baseline.neon', '');
+        FileUtil::makeFile(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath() . '/phpstan-baseline.neon', '');
 
 
         $this->rootComposerFileService->runComposerCommand([
@@ -194,14 +195,14 @@ class InitMonoRepoAction implements Operation
             'phpstan/extension-installer',
         ]);
 
-        exec("./vendor/bin/phpstan analyse --memory-limit=2G --configuration={$this->actionDto->configs->getConfPath()}/phpstan.neon --allow-empty-baseline --generate-baseline={$this->actionDto->configs->getConfPath()}/phpstan-baseline.neon");
+        exec("./vendor/bin/phpstan analyse --memory-limit=2G --configuration={$this->actionDto->configs->getDevConfPath()}/phpstan.neon --allow-empty-baseline --generate-baseline={$this->actionDto->configs->getDevConfPath()}/phpstan-baseline.neon");
     }
 
     private function installPsalm(): void
     {
         $this->copyStubFiles(
             source: 'devconf/conf/psalm.xml',
-            destination: getcwd() . '/conf/psalm.xml',
+            destination: getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath() . '/psalm.xml',
         );
         $this->rootComposerFileService->runComposerCommand([
             'require',
@@ -209,7 +210,7 @@ class InitMonoRepoAction implements Operation
             '--no-interaction',
             'vimeo/psalm',
         ]);
-        exec("./vendor/bin/psalm --config=./{$this->actionDto->configs->getConfPath()}/psalm.xml --set-baseline=psalm-baseline.xml --no-cache");
+        exec("./vendor/bin/psalm --config=./{$this->actionDto->configs->getDevConfPath()}/psalm.xml --set-baseline=psalm-baseline.xml --no-cache");
     }
 
 

@@ -17,7 +17,7 @@ class Configs
 
     private ?string $framework = null;
 
-    private ?string $confPath = null;
+    private ?string $devConfPath = null;
 
     private bool $isInitialized = false;
 
@@ -37,6 +37,7 @@ class Configs
         $instance->packagesPath = $data['packages_path'] ?? null;
         $instance->sharedPackagesPath = $data['shared_packages_path'] ?? null;
         $instance->framework = $data['framework'] ?? null;
+        $instance->devConfPath = $data['dev_conf_path'] ?? null;
         $instance->isInitialized = (bool)$data;
         return $instance;
     }
@@ -47,9 +48,10 @@ class Configs
         $instance->mode = $input->getArgument('mode');
         $instance->appPath = $input->getArgument('app_path');
         $instance->vendorName = $input->getArgument('vendor_name');
-        $instance->packagesPath = $$input->getArgument('packages_path');
+        $instance->packagesPath = $input->getArgument('packages_path');
         $instance->sharedPackagesPath = $input->getArgument('shared_packages_path');
         $instance->framework = $input->getArgument('framework');
+        $instance->devConfPath = $input->getArgument('dev_conf_path');
         return $instance;
 
     }
@@ -80,9 +82,9 @@ class Configs
     }
 
 
-    public function getConfPath():? string
+    public function getDevConfPath():? string
     {
-        return $this->confPath;
+        return $this->devConfPath;
     }
 
 
