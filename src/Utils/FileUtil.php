@@ -46,6 +46,9 @@ class FileUtil
 
     public static function copyFile(string $sourceFile, string $destinationFile, array $replacements): void
     {
+        if(!is_dir(dirname($destinationFile))){
+            mkdir(dirname($destinationFile), 0777, true);
+        }
         $content = file_get_contents($sourceFile);
         $content = str_replace(array_keys($replacements), array_values($replacements), $content);
         file_put_contents($destinationFile, $content);

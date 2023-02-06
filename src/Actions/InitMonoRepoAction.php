@@ -140,18 +140,12 @@ class InitMonoRepoAction implements Operation
             return;
         }
         $this->rootComposerFileService->runComposerCommand([
-            'config',
+            'require',
             '--no-plugins',
             '--no-interaction',
+            '--dev',
+            '--with-all-dependencies',
             'drmovi/phpstan-package-boundaries-plugin',
-            true,
-        ]);
-        $this->rootComposerFileService->runComposerCommand([
-            'config',
-            '--no-plugins',
-            '--no-interaction',
-            'drmovi/phpstan-package-boundaries-plugin',
-            true,
         ]);
 
         (new PhpstanNeonService(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath()))->addRules([
@@ -195,7 +189,6 @@ class InitMonoRepoAction implements Operation
             'phpstan/extension-installer',
         ]);
 
-        exec("./vendor/bin/phpstan analyse --memory-limit=2G --configuration={$this->actionDto->configs->getDevConfPath()}/phpstan.neon --allow-empty-baseline --generate-baseline={$this->actionDto->configs->getDevConfPath()}/phpstan-baseline.neon");
     }
 
     private function installPsalm(): void
@@ -210,7 +203,6 @@ class InitMonoRepoAction implements Operation
             '--no-interaction',
             'vimeo/psalm',
         ]);
-        exec("./vendor/bin/psalm --config=./{$this->actionDto->configs->getDevConfPath()}/psalm.xml --set-baseline=psalm-baseline.xml --no-cache");
     }
 
 
