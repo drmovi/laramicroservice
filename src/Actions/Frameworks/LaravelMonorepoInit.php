@@ -42,9 +42,9 @@ class LaravelMonorepoInit implements Operation
 
     public function rollback(): void
     {
-        $this->appComposerService?->rollback();
+        $this->appComposerService->rollback();
         $this->rootComposerService->rollback();
-        FileUtil::removeDirectory($this->actionDto->configs->getAppPath());
+        FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getAppPath());
     }
 
 

@@ -102,6 +102,7 @@ class InitMonoRepoAction implements Operation
         $this->rootComposerFileService->rollback();
         $this->removeK8sFiles();
         $this->removeDevconfFiles();
+        $this->removePackagesFolders();
     }
 
     private function removeK8sFiles(): void
@@ -216,6 +217,7 @@ class InitMonoRepoAction implements Operation
                 '{{PACKAGES_PATH}}' => $this->actionDto->configs->getPackagesPath(),
             ]);
     }
+
     private function copyStubDirectory(string $source, string $destination)
     {
         FileUtil::copyDirectory(
@@ -225,6 +227,12 @@ class InitMonoRepoAction implements Operation
                 '{{APP_PATH}}' => $this->actionDto->configs->getAppPath(),
                 '{{PACKAGES_PATH}}' => $this->actionDto->configs->getPackagesPath(),
             ]);
+    }
+
+    private function removePackagesFolders(): void
+    {
+        FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getPackagesPath());
+        FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getSharedPackagesPath());
     }
 
 

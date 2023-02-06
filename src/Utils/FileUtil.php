@@ -7,13 +7,13 @@ class FileUtil
 
     public static function removeDirectory($dir): void
     {
-//        if (!self::directoryExist($dir)) {
-//            return;
-//        }
-//
-//        self::emptyDirectory($dir);
-//
-//        rmdir($dir);
+        if (!self::directoryExist($dir)) {
+            return;
+        }
+
+        self::emptyDirectory($dir);
+
+        rmdir($dir);
 
     }
 
@@ -62,11 +62,11 @@ class FileUtil
     public static function emptyDirectory(string $dir): void
     {
 
-//        $files = array_diff(scandir($dir), ['.', '..']);
-//
-//        foreach ($files as $file) {
-//            (is_dir("$dir/$file")) ? static::removeDirectory("$dir/$file") : unlink("$dir/$file");
-//        }
+        $files = array_diff(scandir($dir), ['.', '..']);
+
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? static::removeDirectory("$dir/$file") : self::removeFile("$dir/$file");
+        }
     }
 
     public static function createSymLink(string $target, string $link): void
@@ -76,6 +76,6 @@ class FileUtil
 
     public static function removeFile(string $filePath):void
     {
-        //unlink($filePath);
+        @unlink($filePath);
     }
 }

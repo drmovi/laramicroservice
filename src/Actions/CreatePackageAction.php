@@ -77,7 +77,7 @@ class CreatePackageAction extends PackageAction
     {
         $this->packageData->rootComposerFileService->rollback();
         $this->packageData->rootSkaffoldYamlFileService->rollback();
-        FileUtil::removeDirectory($this->packageData->packageAbsolutePath);
+        FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->packageData->packageAbsolutePath);
     }
 
     private function canAddK8s(): bool
@@ -107,7 +107,7 @@ class CreatePackageAction extends PackageAction
         }
         (new ComposerFileService($apiPackageAbsolutePath, $this->actionDto->composerService))
             ->addPsr4Namespace([
-                $this->getPackageNamespace(ConstData::API_PACKAGE_NAME->value).'\Services\\' => $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->value . '/services/'
+                $this->getPackageNamespace(ConstData::API_PACKAGE_NAME->value) . '\Services\\' => $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->value . '/services/'
             ]);
     }
 }
