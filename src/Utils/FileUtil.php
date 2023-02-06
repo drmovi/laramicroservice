@@ -10,11 +10,8 @@ class FileUtil
         if (!self::directoryExist($dir)) {
             return;
         }
-
         self::emptyDirectory($dir);
-
         rmdir($dir);
-
     }
 
 
@@ -46,7 +43,7 @@ class FileUtil
 
     public static function copyFile(string $sourceFile, string $destinationFile, array $replacements): void
     {
-        if(!is_dir(dirname($destinationFile))){
+        if (!is_dir(dirname($destinationFile))) {
             mkdir(dirname($destinationFile), 0777, true);
         }
         $content = file_get_contents($sourceFile);
@@ -54,7 +51,7 @@ class FileUtil
         file_put_contents($destinationFile, $content);
     }
 
-    public static function makeFile(string $destinationFile,string $content):void
+    public static function makeFile(string $destinationFile, string $content): void
     {
         file_put_contents($destinationFile, $content);
     }
@@ -74,7 +71,7 @@ class FileUtil
         symlink($target, $link);
     }
 
-    public static function removeFile(string $filePath):void
+    public static function removeFile(string $filePath): void
     {
         @unlink($filePath);
     }
