@@ -38,7 +38,10 @@ class MonorepoPackageCreateCommand extends Command
         $composerService = new ComposerService($output);
         $configs = Configs::loadFromComposer(new RootComposerFileService(getcwd(), $composerService));
         $this->validateNameArg($input, $io, $configs);
-        $this->initRepoIfNot($configs, $io, $output);
+        if (!$configs->isInitialized()) {
+            $this->initMonoRepo($io, $output);
+            $configs = Configs::loadFromComposer(new RootComposerFileService(getcwd(), $composerService));
+        }
         return (new CreatePackageAction(new ActionDto(
             command: $this,
             input: $input,
@@ -61,7 +64,7 @@ class MonorepoPackageCreateCommand extends Command
                 $io->error($e->getMessage());
             }
         }
-        return $io->ask('Name of your package', null, function ($answer, $configs) {
+        return $io->ask('Name of your package', null, function ($answer) use ($configs) {
             $this->validatePackageName($answer, $configs);
             return $answer;
         });
@@ -81,11 +84,8 @@ class MonorepoPackageCreateCommand extends Command
         }
     }
 
-    private function initRepoIfNot(Configs $configs, SymfonyStyle $io, OutputInterface $output): void
+    private function initMonoRepo(SymfonyStyle $io, OutputInterface $output): void
     {
-        if ($configs->isInitialized()) {
-            return;
-        }
         $io->warning('Seems like you are trying to create a package in a non-initialized monorepo. Initializing now...');
         $this->getApplication()->find(Commands::MONOREPO_INIT->value)->run(new ArrayInput([]), $output);
     }

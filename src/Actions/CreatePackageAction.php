@@ -105,9 +105,20 @@ class CreatePackageAction extends PackageAction
         if (ConstData::API_PACKAGE_NAME->value !== $this->packageData->packageName) {
             return;
         }
+        $this->copyStubFiles(
+            source: "frameworks/{$this->actionDto->configs->getFramework()}/shared/package",
+            destination: $apiPackageAbsolutePath,
+            composerName: $this->packageData->packageComposerName,
+            packageNamespace: $this->packageData->packageNamespace,
+            packageName: $this->packageData->packageName,
+            appPath: $this->actionDto->configs->getAppPath(),
+            packagePath: $this->actionDto->configs->getPackagesPath()
+        );
         (new ComposerFileService($apiPackageAbsolutePath, $this->actionDto->composerService))
             ->addPsr4Namespace([
                 $this->getPackageNamespace(ConstData::API_PACKAGE_NAME->value) . '\Services\\' => $this->actionDto->configs->getSharedPackagesPath() . DIRECTORY_SEPARATOR . ConstData::API_PACKAGE_NAME->value . '/services/'
             ]);
+
+
     }
 }

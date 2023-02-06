@@ -29,7 +29,7 @@ class LaravelMonorepoInit implements Operation
         $this->installLaravelProject();
         $this->symLinkRootVendorToApp();
         $this->addLaravelScriptsToRootComposerFile();
-        $this->addAppRepositoryToRootComposerFile();
+        $this->addAppToRootComposerFile();
         $this->generateDotEnv();
         $this->installDevDependencies();
         $this->installLintersAndFixers();
@@ -56,10 +56,12 @@ class LaravelMonorepoInit implements Operation
     }
 
 
-    private function addAppRepositoryToRootComposerFile(): void
+    private function addAppToRootComposerFile(): void
     {
-        $this->appComposerService->setName("{$this->actionDto->configs->getVendorName()}/{$this->actionDto->configs->getAppPath()}");
+        $name = "{$this->actionDto->configs->getVendorName()}/{$this->actionDto->configs->getAppPath()}";
+        $this->appComposerService->setName($name);
         $this->rootComposerService->addRepository($this->actionDto->configs->getFramework(), './' . $this->actionDto->configs->getAppPath());
+        $this->rootComposerService->runComposerCommand(['require', $name, '--with-all-dependencies', '--no-interaction']);
     }
 
 
