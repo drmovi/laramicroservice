@@ -27,6 +27,6 @@ class LaravelAppService
 
     public function artisan(string $command, array $args = []): void
     {
-        $this->app->call($command, $args);
+        $this->app->artisan($command, $args);
     }
 }
