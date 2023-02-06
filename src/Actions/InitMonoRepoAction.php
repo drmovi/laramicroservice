@@ -58,13 +58,13 @@ class InitMonoRepoAction implements Operation
     private function setMonoRepoConfigs(): void
     {
         $this->rootComposerFileService->addMonoRepoConfigs([
-            'app_path' => $this->actionDto->input->getArgument('app_path'),
-            'packages_path' => $this->actionDto->input->getArgument('packages_path'),
-            'shared_packages_path' => $this->actionDto->input->getArgument('shared_packages_path'),
-            'vendor_name' => $this->actionDto->input->getArgument('vendor_name'),
-            'framework' => $this->actionDto->input->getArgument('framework'),
-            'mode' => $this->actionDto->input->getArgument('mode'),
-            'dev_conf_path' => $this->actionDto->input->getArgument('dev_conf_path'),
+            'app_path' => $this->actionDto->configs->getAppPath(),
+            'packages_path' => $this->actionDto->configs->getPackagesPath(),
+            'shared_packages_path' => $this->actionDto->configs->getSharedPackagesPath(),
+            'vendor_name' => $this->actionDto->configs->getVendorName(),
+            'framework' => $this->actionDto->configs->getFramework(),
+            'mode' => $this->actionDto->configs->getMode(),
+            'dev_conf_path' => $this->actionDto->configs->getDevConfPath(),
         ]);
     }
 
@@ -86,7 +86,7 @@ class InitMonoRepoAction implements Operation
         if ($this->actionDto->configs->getMode() !== Modes::MICROSERVICE->value) {
             return;
         }
-        $this->copyStubFiles(
+        $this->copyStubDirectory(
             source: 'devops/root',
             destination: getcwd()
         );
@@ -127,7 +127,7 @@ class InitMonoRepoAction implements Operation
             '--no-interaction',
             'phpunit/phpunit'
         ]);
-        $this->copyStubFiles(
+        $this->copyStubFile(
             source: 'devconf/phpunit.xml',
             destination: getcwd() . '/phpunit.xml',
         );
@@ -163,7 +163,7 @@ class InitMonoRepoAction implements Operation
 
     private function copyGitIgnoreFileToRoot(): void
     {
-        $this->copyStubFiles(
+        $this->copyStubFile(
             source: 'devconf/.gitignore',
             destination: getcwd() . '/.gitignore',
         );
@@ -172,7 +172,7 @@ class InitMonoRepoAction implements Operation
     private function installPhpstan(): void
     {
 
-        $this->copyStubFiles(
+        $this->copyStubFile(
             source: 'devconf/conf/phpstan.neon',
             destination: getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath() . '/phpstan.neon',
         );
@@ -200,7 +200,7 @@ class InitMonoRepoAction implements Operation
 
     private function installPsalm(): void
     {
-        $this->copyStubFiles(
+        $this->copyStubFile(
             source: 'devconf/conf/psalm.xml',
             destination: getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath() . '/psalm.xml',
         );
@@ -214,7 +214,17 @@ class InitMonoRepoAction implements Operation
     }
 
 
-    private function copyStubFiles(string $source, string $destination)
+    private function copyStubFile(string $source, string $destination)
+    {
+        FileUtil::copyFile(
+            sourceFile: __DIR__ . '/../../stubs/' . $source,
+            destinationFile: $destination,
+            replacements: [
+                '{{APP_PATH}}' => $this->actionDto->configs->getAppPath(),
+                '{{PACKAGES_PATH}}' => $this->actionDto->configs->getPackagesPath(),
+            ]);
+    }
+    private function copyStubDirectory(string $source, string $destination)
     {
         FileUtil::copyDirectory(
             source: __DIR__ . '/../../stubs/' . $source,

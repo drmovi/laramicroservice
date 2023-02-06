@@ -31,7 +31,7 @@ abstract class PackageAction implements Operation
             packageAbsolutePath: getcwd() . DIRECTORY_SEPARATOR . $packageRelativePath,
             packageNamespace: $this->getPackageNamespace($packageName),
             packageSkaffoldYamlFileRelativePath: $packageRelativePath . '/k8s/skaffold.yaml',
-            packageComposerName: $this->getComposerPackageName(),
+            packageComposerName: $this->getComposerPackageName($packageName),
             isSharedPackage: $this->isSharedPackage()
         );
 
@@ -62,9 +62,9 @@ abstract class PackageAction implements Operation
     abstract public function rollback(): void;
 
 
-    private function getComposerPackageName(): string
+    private function getComposerPackageName(string $packageName): string
     {
-        return "{$this->actionDto->configs->getVendorName()}/{$this->packageData->packageName}";
+        return "{$this->actionDto->configs->getVendorName()}/{$packageName}";
     }
 
     private function isSharedPackage(): bool

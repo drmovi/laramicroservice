@@ -21,7 +21,7 @@ class FrameworkOperationFactory
 
     public function make(ActionDto $dto): Operation
     {
-        $class = $this->packages[$dto->input->getArgument('framework')][$dto->command->getName()] ?? null;
+        $class = $this->packages[$dto->configs->getFramework()][$dto->command->getName()] ?? null;
         if (!$class) {
             throw new \Exception("framework operation ({$dto->command->getName()}) for framework ({$dto->input->getArgument('framework')}) not found");
         }
