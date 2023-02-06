@@ -10,7 +10,7 @@ class NeonFileService implements State
 
     private ?string $backup = null;
 
-    public function __construct(protected readonly string $path)
+    public function __construct(protected string $path)
     {
     }
 

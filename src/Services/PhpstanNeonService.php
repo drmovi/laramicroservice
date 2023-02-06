@@ -5,7 +5,7 @@ namespace Drmovi\MonorepoGenerator\Services;
 class PhpstanNeonService extends NeonFileService
 {
 
-    public function __construct(protected readonly string $path)
+    public function __construct(protected string $path)
     {
         parent::__construct($this->path . DIRECTORY_SEPARATOR . 'phpstan.neon');
     }
