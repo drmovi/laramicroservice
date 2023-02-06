@@ -2,12 +2,31 @@
 
 namespace Drmovi\MonorepoGenerator\Actions;
 
+use Drmovi\MonorepoGenerator\Dtos\PackageDto;
 use Drmovi\MonorepoGenerator\Enums\ConstData;
+use Drmovi\MonorepoGenerator\Factories\FrameworkOperationFactory;
 use Drmovi\MonorepoGenerator\Utils\FileUtil;
+use Symfony\Component\Console\Command\Command;
 
 class DeletePackageAction extends PackageAction
 {
 
+    public function exec(): int
+    {
+        $frameworkPackageOperation = (new FrameworkOperationFactory())->make(PackageDto::loadFromActionDto($this->actionDto, $this->packageData));
+        $this->backup();
+        $frameworkPackageOperation->backup();
+        try {
+            $frameworkPackageOperation->exec();
+            $this->_exec();
+            return Command::SUCCESS;
+        } catch (\Throwable $e) {
+            $this->rollback();
+            $frameworkPackageOperation->rollback();
+            $this->actionDto->io->error($e->getMessage());
+            return Command::FAILURE;
+        }
+    }
 
     protected function _exec(): void
     {
