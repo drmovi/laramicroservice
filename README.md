@@ -6,6 +6,8 @@ Generate a monorepo structure and/or package for various frameworks. (currently 
 
 ### Usage
 
+Make sure that your project is empty, git and composer are initialized.
+
 Inside your empty project directory run the following command
 ```
 compsoer require --dev drmovi/php-monorepo-generator
