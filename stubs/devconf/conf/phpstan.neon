@@ -8,10 +8,10 @@ parameters:
          - ../{{PACKAGES_PATH}}
          - ../{{SHARED_PACKAGES_PATH}}
 
-	excludePaths:
-		- ../{{APP_PATH}}/vendor/*
-		- ../{{APP_PATH}}/bootstrap/cache/*
-		- ../{{APP_PATH}}/storage/*
+    excludePaths:
+         - ../{{APP_PATH}}/vendor/*
+         - ../{{APP_PATH}}/bootstrap/cache/*
+         - ../{{APP_PATH}}/storage/*
 
     # Level 9 is the highest level
     level: 5

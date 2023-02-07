@@ -143,13 +143,13 @@ class InitMonoRepoAction implements Operation
         if ($this->actionDto->configs->getMode() !== Modes::MICROSERVICE->value) {
             return;
         }
-        $this->rootComposerFileService->runComposerCommand([
-            'require',
-            '--no-plugins',
-            '--no-interaction',
-            '--dev',
-            '--with-all-dependencies',
-            'drmovi/phpstan-package-boundaries-plugin',
+
+        $this->rootComposerFileService->addExtra([
+            'phpstan-package-boundaries-plugin'=>[
+                'packages_path' => $this->actionDto->configs->getPackagesPath(),
+                'shared_packages_path' => $this->actionDto->configs->getSharedPackagesPath(),
+                'app_path' => $this->actionDto->configs->getAppPath(),
+            ]
         ]);
 
         (new PhpstanNeonService(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath()))->addRules([

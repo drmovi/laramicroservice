@@ -156,14 +156,14 @@ class LaravelMonorepoInit implements Operation
     private function updateMakeFile()
     {
         FileUtil::copyFile(
-            sourceFile: getcwd() . './makefile',
-            destinationFile: getcwd() . './makefile',
+            sourceFile: getcwd() . '/makefile',
+            destinationFile: getcwd() . '/makefile',
             replacements: [
                 '{{FRAMEWORK_STYLE_FIX_COMMAND}}' => './vendor/bin/pint',
                 '{{FRAMEWORK_STYLE_CHECK_COMMAND}}' => './vendor/bin/pint --test',
                 '{{FRAMEWORK_MAKEFILE_COMMANDS}}' => <<<EOT
 artisan:
-	@php ./app/artisan "$@"
+	@php ./app/artisan $(filter-out $@,$(MAKECMDGOALS))
 EOT
             ]);
     }
