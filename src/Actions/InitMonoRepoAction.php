@@ -156,6 +156,13 @@ class InitMonoRepoAction implements Operation
             'Drmovi\PackageBoundaries\PackageBoundaries'
         ]);
 
+        $this->rootComposerFileService->addExtra([
+            'phpstan-package-boundaries-plugin'=>[
+                'packages_path' => $this->actionDto->configs->getPackagesPath(),
+                'shared_packages_path' => $this->actionDto->configs->getSharedPackagesPath(),
+            ]
+        ]);
+
     }
 
 

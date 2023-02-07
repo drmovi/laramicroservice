@@ -30,4 +30,24 @@ class RootComposerFileService extends ComposerFileService
             ]);
         }
     }
+
+    public function addExtra(array $data)
+    {
+        if (!$this->canOperate()) {
+            return;
+        }
+        foreach ($data as $key => $value) {
+            $data = [
+                'config',
+                '--working-dir',
+                dirname($this->path)
+            ];
+            if (is_array($value)) {
+                $value = json_encode($value);
+            }
+            $data[] = "extra.$key";
+            $data[] = $value;
+            $this->composer->runComposerCommand($data);
+        }
+    }
 }

@@ -1,15 +1,24 @@
 
 phpstan:
+	@rm -rf ./app/vendor
 	@./vendor/bin/phpstan analyse --memory-limit=2G --configuration=devconf/phpstan.neon
+	@ln -s ./../vendor ./app
+
 
 phpstan-baseline:
+	@rm -rf ./app/vendor
 	@./vendor/bin/phpstan analyse --memory-limit=2G --configuration=devconf/phpstan.neon --allow-empty-baseline --generate-baseline=devconf/phpstan-baseline.neon
+	@rm -rf ./app/vendor
 
 psalm:
+	@rm -rf ./app/vendor
 	@./vendor/bin/psalm --config=./devconf/psalm.xml --use-baseline=psalm-baseline.xml --no-cache
+	@rm -rf ./app/vendor
 
 psalm-baseline:
+	@rm -rf ./app/vendor
 	@./vendor/bin/psalm --config=./devconf/psalm.xml --set-baseline=psalm-baseline.xml --no-cache
+	@rm -rf ./app/vendor
 
 test:
 	@./vendor/bin/phpunit --configuration ./phpunit.xml
