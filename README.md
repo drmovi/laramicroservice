@@ -53,4 +53,4 @@ This is to ensure microservice bounded context is applied.
 
 ### Notes
 
-* There is a shared package created called 'api', the idea is to put all the api related code of any package inside this shared package, so that it can be used by any package that needs to expose or consume an api of other pacakges.
+* There is a shared package created called 'api', the idea is to put all the api related code of any package inside this shared package, so that it can be used by any package that needs to expose or consume an api of other packages.
