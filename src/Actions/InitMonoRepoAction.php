@@ -47,7 +47,7 @@ class InitMonoRepoAction implements Operation
         $this->setMonoRepoConfigs();
         $this->copyGitIgnoreFileToRoot();
         $this->createEmptyPackagesDirectory();
-        $this->createRootK8sFiles();
+        $this->createDevopsFiles();
         $this->installPhpunit();
         $this->installPhpstan();
         $this->installPsalm();
@@ -84,7 +84,7 @@ class InitMonoRepoAction implements Operation
         }
     }
 
-    private function createRootK8sFiles(): void
+    private function createDevopsFiles(): void
     {
         if ($this->actionDto->configs->getMode() !== Modes::MICROSERVICE->value) {
             return;
