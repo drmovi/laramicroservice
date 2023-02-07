@@ -33,6 +33,7 @@ class LaravelMonorepoInit implements Operation
         $this->generateDotEnv();
         $this->installDevDependencies();
         $this->installLintersAndFixers();
+        $this->updateMakeFile();
         return Command::SUCCESS;
     }
 
@@ -137,7 +138,7 @@ class LaravelMonorepoInit implements Operation
         }
     }
 
-    private function installLintersAndFixers()
+    private function installLintersAndFixers(): void
     {
         $this->rootComposerService->runComposerCommand([
             'require',
@@ -150,5 +151,20 @@ class LaravelMonorepoInit implements Operation
         exec("./vendor/bin/psalm-plugin enable -c ./{$this->actionDto->configs->getDevConfPath()}/psalm.xml psalm/plugin-laravel");
         $phpstanNeonFileService = new PhpstanNeonService($this->actionDto->configs->getDevConfPath());
         $phpstanNeonFileService->addExcludePaths(["../{$this->actionDto->configs->getAppPath()}/bootstrap/cache", "../{$this->actionDto->configs->getAppPath()}/storage"]);
+    }
+
+    private function updateMakeFile()
+    {
+        FileUtil::copyFile(
+            sourceFile: getcwd() . './makefile',
+            destinationFile: getcwd() . './makefile',
+            replacements: [
+                '{{FRAMEWORK_STYLE_FIX_COMMAND}}' => './vendor/bin/pint',
+                '{{FRAMEWORK_STYLE_CHECK_COMMAND}}' => './vendor/bin/pint --test',
+                '{{FRAMEWORK_MAKEFILE_COMMANDS}}' => <<<EOT
+artisan:
+	@php ./app/artisan "$@"
+EOT
+            ]);
     }
 }

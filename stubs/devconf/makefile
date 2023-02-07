@@ -33,9 +33,11 @@ monorepo:
 	@./vendor/bin/dmg monorepo:$(filter-out $@,$(MAKECMDGOALS))
 
 style-fix:
+	@{{FRAMEWORK_STYLE_FIX_COMMAND}}
 
 
 style-check:
+	@{{FRAMEWORK_STYLE_CHECK_COMMAND}}
 
 
 lint: style-test phpstan psalm
@@ -43,5 +45,4 @@ lint: style-test phpstan psalm
 pipeline: lint test test-with-clover-coverage
 
 
-artisan:
-	@php ./app/artisan "$@"
+{{FRAMEWORK_MAKEFILE_COMMANDS}}
