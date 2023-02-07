@@ -54,6 +54,7 @@ class InitMonoRepoAction implements Operation
         $this->addMakeFile();
         $this->installPackageBoundariesPlugin();
         $this->installSharedPackages();
+        $this->addPreCommit();
     }
 
 
@@ -120,6 +121,7 @@ class InitMonoRepoAction implements Operation
         FileUtil::removeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath());
         FileUtil::removeFile(getcwd() . DIRECTORY_SEPARATOR . 'phpunit.xml');
         FileUtil::removeFile(getcwd() . DIRECTORY_SEPARATOR . 'makefile');
+        FileUtil::removeFile(getcwd() . '/.git/hooks/pre-commit');
     }
 
     private function installPhpunit(): void
@@ -145,24 +147,24 @@ class InitMonoRepoAction implements Operation
         }
 
         $this->rootComposerFileService->addExtra([
-            'phpstan-package-boundaries-plugin'=>[
+            'phpstan-package-boundaries-plugin' => [
                 'packages_path' => $this->actionDto->configs->getPackagesPath(),
                 'shared_packages_path' => $this->actionDto->configs->getSharedPackagesPath(),
                 'app_path' => $this->actionDto->configs->getAppPath(),
             ]
         ]);
+        $this->rootComposerFileService->runComposerCommand([
+            'require',
+            '--no-plugins',
+            '--no-interaction',
+            '--dev',
+            '--with-all-dependencies',
+            'drmovi/phpstan-package-boundaries-plugin',
+        ]);
 
         (new PhpstanNeonService(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getDevConfPath()))->addRules([
             'Drmovi\PackageBoundaries\PackageBoundaries'
         ]);
-
-        $this->rootComposerFileService->addExtra([
-            'phpstan-package-boundaries-plugin'=>[
-                'packages_path' => $this->actionDto->configs->getPackagesPath(),
-                'shared_packages_path' => $this->actionDto->configs->getSharedPackagesPath(),
-            ]
-        ]);
-
     }
 
 
@@ -255,9 +257,18 @@ class InitMonoRepoAction implements Operation
         );
     }
 
-    private function createEmptyPackagesDirectory():void
+    private function createEmptyPackagesDirectory(): void
     {
         FileUtil::makeDirectory(getcwd() . DIRECTORY_SEPARATOR . $this->actionDto->configs->getPackagesPath());
+    }
+
+    private function addPreCommit(): void
+    {
+        $this->copyStubFile(
+            source: 'devconf/pre-commit',
+            destination: getcwd() . '/.git/hooks/pre-commit',
+        );
+        exec('chmod +x ' . getcwd() . '/.git/hooks/pre-commit');
     }
 
 

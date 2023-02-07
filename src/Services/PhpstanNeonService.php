@@ -41,7 +41,7 @@ class PhpstanNeonService extends NeonFileService
         }
         $content = $this->getContent();
         foreach ($rules as $rule) {
-            $content['rules'][$rule] = true;
+            $content['rules'][] = $rule;
         }
         $this->setContent($content);
     }
