@@ -45,7 +45,7 @@ lint: style-test phpstan psalm
 pipeline: lint test test-with-clover-coverage
 
 dev:
-	@skaffold dev -p local
+	@minikube start && skaffold dev -p local --kube-context minikube
 
 
 {{FRAMEWORK_MAKEFILE_COMMANDS}}

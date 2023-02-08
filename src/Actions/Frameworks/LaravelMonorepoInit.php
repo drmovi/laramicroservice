@@ -31,6 +31,7 @@ class LaravelMonorepoInit implements Operation
         $this->addLaravelScriptsToRootComposerFile();
         $this->addAppToRootComposerFile();
         $this->generateDotEnv();
+        $this->installOctane();
         $this->installDevDependencies();
         $this->installLintersAndFixers();
         $this->updateMakeFile();
@@ -166,5 +167,17 @@ artisan:
 	@php ./app/artisan $(filter-out $@,$(MAKECMDGOALS))
 EOT
             ]);
+    }
+
+    private function installOctane(): void
+    {
+        $this->rootComposerService->runComposerCommand([
+            'require',
+            '--with-all-dependencies',
+            '--no-interaction',
+            'laravel/octane'
+        ]);
+        $this->appComposerService->addRequires(['laravel/octane' => $this->rootComposerService->getRequireValue('laravel/octane')]);
+        $this->getLaravelAppService()->artisan('octane:install',['--server' => 'swoole']);
     }
 }

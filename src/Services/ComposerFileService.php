@@ -73,6 +73,18 @@ class ComposerFileService implements State
         $this->setContent($data);
     }
 
+    public function addRequires(array $requires, bool $dev = false): void
+    {
+        if (!$this->canOperate()) {
+            return;
+        }
+        $data = $this->getContent();
+        foreach ($requires as $require => $version) {
+            $data[$dev ? 'require-dev' : 'require'][$require] = $version;
+        }
+        $this->setContent($data);
+    }
+
     public function getPsr4Namespace(string $namespace = null, bool $dev = false): string|array|null
     {
         if (!$this->canOperate()) {
@@ -90,6 +102,15 @@ class ComposerFileService implements State
         $data = $this->getContent();
         $data['scripts'] = array_merge_recursive($data['scripts'] ?? [], $scripts);
         $this->setContent($data);
+    }
+
+    public function getRequireValue(string $string = null): string|array|null
+    {
+        if (!$this->canOperate()) {
+            return null;
+        }
+        $data = $this->getContent();
+        return $string ? ($data['require'][$string] ?? null) : $data['require'];
     }
 
     public function getRequireDev(string $string = null): string|array|null
