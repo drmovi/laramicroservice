@@ -90,7 +90,7 @@ class ComposerFileService implements State
             return;
         }
         $data = $this->getContent();
-        foreach ($requires as $require => $version) {
+        foreach ($requires as $require) {
             unset($data[$dev ? 'require-dev' : 'require'][$require]);
         }
         $this->setContent($data);
