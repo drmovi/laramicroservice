@@ -43,6 +43,7 @@ class RootComposerFileService extends ComposerFileService
                 dirname($this->path)
             ];
             if (is_array($value)) {
+                $data[] = '--json';
                 $value = json_encode($value);
             }
             $data[] = "extra.$key";

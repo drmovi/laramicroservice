@@ -27,6 +27,6 @@ split_packages() {
 if [ -n "$PACKAGE_NAME" ]; then
   split_packages
 fi
-composer update --no-install
-composer install --no-scripts --no-interaction --no-progress --no-suggest "$( if [ "$APP_ENV" != "local" ]; then echo '--no-dev'; fi )" --optimize-autoloader
-rm -rf ./"$app_path"/vendor &&  ln -s ./../vendor ./"$app_path"
+
+composer update --no-scripts --no-interaction --no-progress "$( if [ "$APP_ENV" != "local" ]; then echo '--no-dev'; fi )" --optimize-autoloader
+rm -rf /"$app_path"/vendor &&  ln -s ./../vendor ./"$app_path"
