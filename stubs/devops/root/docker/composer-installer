@@ -1,0 +1,31 @@
+#!/bin/sh
+
+split_packages() {
+  vendor_name=$(composer config extra.monorepo.vendor_name)
+  packages_path=$(composer config extra.monorepo.packages_path)
+  packages_to_remove=""
+  for d in ./"$packages_path"/*; do
+    package_name=$(basename -- "$d")
+    if [ "$package_name" != "$PACKAGE_NAME" ]; then
+      packages_to_remove="$packages_to_remove $vendor_name/$package_name"
+    fi
+  done
+  if [ -n "$packages_to_remove" ]; then
+    composer remove "$packages_to_remove"
+  fi
+
+  for d in ./"$packages_path"/*; do
+    package_name=$(basename -- "$d")
+    if [ "$package_name" != "$PACKAGE_NAME" ]; then
+      composer config --unset repositories."$package_name"
+      rm -rf "$d"
+    fi
+  done
+}
+
+if [ -n "$PACKAGE_NAME" ]; then
+  split_packages
+fi
+
+composer update --no-install
+composer install --no-scripts --no-interaction --no-progress --no-suggest "$( if [ "$APP_ENV" != "local" ]; then echo '--no-dev'; fi )" --optimize-autoloader

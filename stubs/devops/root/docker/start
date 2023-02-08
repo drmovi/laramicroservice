@@ -3,7 +3,7 @@
 supervisor-config
 
 if [ ! -z "$SCHEDULE" ]; then
-* * * * * cd  /var/app && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd  /var/app/{{APP_PATH}} && php artisan schedule:run >> /dev/null 2>&1
 fi;
 
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

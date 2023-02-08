@@ -4,7 +4,7 @@ QUEUES_LIST=("${QUEUES}")
 for QUEUE in "${QUEUES_LIST[@]}"; do
     echo "
 [program:${QUEUE}]
-command=/usr/local/bin/php /var/app/artisan queue:work --queue=${QUEUE} --sleep=3 --tries=3
+command=/usr/local/bin/php /var/app/{{APP_PATH}}/artisan queue:work --queue=${QUEUE} --sleep=3 --tries=3
 user=root
 stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
@@ -13,10 +13,10 @@ stderr_logfile_maxbytes=0
 " >> /etc/supervisor/conf.d/supervisord.conf
 done
 
-if [ ! -z "$ENABLE_SWOOLE" ]; then
+if [ -n "$ENABLE_SWOOLE" ]; then
     echo "
 [program:php]
-command=/usr/local/bin/php -d variables_order=EGPCS /var/app/artisan octane:start --server=swoole --host=0.0.0.0 --port=8080
+command=/usr/local/bin/php -d variables_order=EGPCS /var/app/{{APP_PATH}}/artisan octane:start --server=swoole --host=0.0.0.0 --port=8080
 user=root
 stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
