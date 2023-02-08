@@ -84,6 +84,17 @@ class ComposerFileService implements State
         }
         $this->setContent($data);
     }
+    public function removeRequires(array $requires, bool $dev = false): void
+    {
+        if (!$this->canOperate()) {
+            return;
+        }
+        $data = $this->getContent();
+        foreach ($requires as $require => $version) {
+            unset($data[$dev ? 'require-dev' : 'require'][$require]);
+        }
+        $this->setContent($data);
+    }
 
     public function getPsr4Namespace(string $namespace = null, bool $dev = false): string|array|null
     {

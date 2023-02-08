@@ -54,7 +54,7 @@ class LaravelMonorepoInit implements Operation
     private function generateDotEnv(): void
     {
         FileUtil::copyFile($this->actionDto->configs->getAppPath() . '/.env.example', $this->actionDto->configs->getAppPath() . '/.env', []);
-        $this->getLaravelAppService()->artisan('key:generate', ['--ansi' => true]);
+        exec("php ./{$this->actionDto->configs->getAppPath()}/artisan key:generate --ansi=true");
     }
 
 
@@ -104,11 +104,6 @@ class LaravelMonorepoInit implements Operation
     private function symLinkRootVendorToApp(): void
     {
         FileUtil::createSymLink('./../vendor', './' . $this->actionDto->configs->getAppPath() . '/vendor');
-    }
-
-    private function getLaravelAppService(): LaravelAppService
-    {
-        return LaravelAppService::instance($this->actionDto);
     }
 
     private function installDevDependencies(): void
@@ -178,6 +173,8 @@ EOT
             'laravel/octane'
         ]);
         $this->appComposerService->addRequires(['laravel/octane' => $this->rootComposerService->getRequireValue('laravel/octane')]);
-        $this->getLaravelAppService()->artisan('octane:install',['--server' => 'swoole']);
+        $this->rootComposerService->removeRequires(['laravel/octane']);
+        $this->rootComposerService->runComposerCommand(['update', '--no-interaction', '--with-all-dependencies']);
+        exec("php ./{$this->actionDto->configs->getAppPath()}/artisan octane:install --server=swoole");
     }
 }
