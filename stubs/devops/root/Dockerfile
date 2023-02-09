@@ -1,4 +1,4 @@
-FROM drmovi/php8.1-swoole
+FROM drmovi/php8.2-swoole
 
 
 RUN mkdir -p /etc/supervisor.d/ && mkdir /var/log/supervisor/

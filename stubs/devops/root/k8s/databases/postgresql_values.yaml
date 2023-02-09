@@ -1,0 +1,9 @@
+global:
+  postgresql:
+    auth:
+      username: root
+      password: secret
+      database:
+    service:
+      ports:
+        postgresql: 5432

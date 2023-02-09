@@ -5,3 +5,5 @@ requires:
   - path: ./gateway-api/skaffold.yaml
   - path: ./resources/skaffold.yaml
   - path: ./istio/skaffold.yaml
+  - path: ./databases/skaffold.yaml
+

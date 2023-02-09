@@ -21,6 +21,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{PROJECT_FILE_NAME}}-config
+            - secretRef:
+                name: {{PROJECT_FILE_NAME}}-config-secret
           resources:
             requests:
               cpu: 100m

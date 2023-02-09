@@ -1,0 +1,14 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+
+profiles:
+  - name: local
+    deploy:
+      helm:
+        releases:
+          - name: postgresql
+            repo: https://charts.bitnami.com/bitnami
+            remoteChart: postgresql
+            namespace: databases
+            valuesFiles:
+                - ./postgresql_values.yaml
