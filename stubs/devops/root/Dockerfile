@@ -16,5 +16,8 @@ COPY . .
 ARG PACKAGE_NAME
 ARG APP_ENV
 RUN PACKAGE_NAME=$PACKAGE_NAME APP_ENV=$APP_ENV ./composer-installer
+RUN --mount=type=cache,target=/tmp/cache composer update --no-scripts --no-interaction  "$( if [ "$APP_ENV" != "local" ]; then echo '--no-dev'; fi )" --optimize-autoloader
+
+RUN app_path=$(composer config extra.monorepo.app_path) && rm -rf ./"$app_path"/vendor &&  ln -s ./../vendor ./"$app_path"
 
 ENTRYPOINT ["start"]

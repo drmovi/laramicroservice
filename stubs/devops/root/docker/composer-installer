@@ -1,7 +1,6 @@
 #!/bin/sh
 vendor_name=$(composer config extra.monorepo.vendor_name)
 packages_path=$(composer config extra.monorepo.packages_path)
-app_path=$(composer config extra.monorepo.app_path)
 split_packages() {
 
   packages_to_remove=""
@@ -27,6 +26,3 @@ split_packages() {
 if [ -n "$PACKAGE_NAME" ]; then
   split_packages
 fi
-
-composer update --no-scripts --no-interaction --no-progress "$( if [ "$APP_ENV" != "local" ]; then echo '--no-dev'; fi )" --optimize-autoloader
-rm -rf /"$app_path"/vendor &&  ln -s ./../vendor ./"$app_path"
