@@ -23,10 +23,13 @@ profiles:
       - op: add
         path: /build/artifacts/0/sync/manual
         value:
-          - src: './microservices/{{PROJECT_FILE_NAME}}/**'
-            dest: ./microservices/{{PROJECT_FILE_NAME}}/shared
-          - src: './microservices/shared/**'
-            dest: ./microservices/{{PROJECT_FILE_NAME}}/shared
+          - src: ./{{PACKAGES_PATH}}/{{PROJECT_FILE_NAME}}/**
+            dest: /var/app/{{PACKAGES_PATH}}/{{PROJECT_FILE_NAME}}/
+          - src: ./{{SHARED_PACKAGES_PATH}}/
+            dest: /var/app/{{SHARED_PACKAGES_PATH}}/
+          - src: ./vendor/**
+            dest: /var/app/vendor/
+
     manifests:
       kustomize:
         paths:

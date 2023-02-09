@@ -47,7 +47,8 @@ class CreatePackageAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagesPath()
+            packagePath: $this->actionDto->configs->getPackagesPath(),
+            sharedPackagePath: $this->actionDto->configs->getSharedPackagesPath()
         );
         $this->packageData->rootComposerFileService->runComposerCommand([
             'config',
@@ -74,7 +75,8 @@ class CreatePackageAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagesPath()
+            packagePath: $this->actionDto->configs->getPackagesPath(),
+            sharedPackagePath: $this->actionDto->configs->getSharedPackagesPath()
 
         );
     }
@@ -122,7 +124,8 @@ class CreatePackageAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagesPath()
+            packagePath: $this->actionDto->configs->getPackagesPath(),
+            sharedPackagePath: $this->actionDto->configs->getSharedPackagesPath()
 
         );
         if (ConstData::API_PACKAGE_NAME->value !== $this->packageData->packageName) {
@@ -135,7 +138,8 @@ class CreatePackageAction extends PackageAction
             packageNamespace: $this->packageData->packageNamespace,
             packageName: $this->packageData->packageName,
             appPath: $this->actionDto->configs->getAppPath(),
-            packagePath: $this->actionDto->configs->getPackagesPath()
+            packagePath: $this->actionDto->configs->getPackagesPath(),
+            sharedPackagePath: $this->actionDto->configs->getSharedPackagesPath()
         );
         (new ComposerFileService($apiPackageAbsolutePath, $this->actionDto->composerService))
             ->addPsr4Namespace([

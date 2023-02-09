@@ -2,8 +2,7 @@ apiVersion: skaffold/v4beta2
 kind: Config
 
 requires:
-    - path: ./namespaces.yaml
-
+  - path: ./namespaces.yaml
 
 deploy:
   helm:
@@ -17,9 +16,3 @@ deploy:
         repo: https://istio-release.storage.googleapis.com/charts
         remoteChart: istiod
         namespace: istio-system
-
-      - name: istio-ingress
-        repo: https://istio-release.storage.googleapis.com/charts
-        remoteChart: gateway
-        namespace: istio-system
-

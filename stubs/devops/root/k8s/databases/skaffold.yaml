@@ -1,6 +1,8 @@
 apiVersion: skaffold/v4beta2
 kind: Config
 
+manifests:
+    - ./resources/namespaces.yaml
 profiles:
   - name: local
     deploy:
