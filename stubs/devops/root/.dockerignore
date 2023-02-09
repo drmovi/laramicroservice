@@ -33,3 +33,4 @@ phpunit.xml
 {{PACKAGES_PATH}}/*/k8s/**
 /vendor
 {{APP_PATH}}/vendor
+/k8s
