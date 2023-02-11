@@ -1,23 +1,19 @@
-ARG PACKAGE_NAME
-ARG APP_ENV
-
 FROM composer:2.5.2 AS composer
 
-RUN composer config --global --list
+ARG PACKAGE_NAME
+ARG APP_ENV
 
 WORKDIR /var/app
 
 COPY . .
+
+RUN --mount=type=cache,target=/tmp/cache composer install --no-scripts --no-interaction  $( if [ "$APP_ENV" != "local" ]; then echo '--no-dev'; fi ) --optimize-autoloader
 
 RUN chmod +x ./microservice
 
 RUN PACKAGE_NAME=$PACKAGE_NAME APP_ENV=$APP_ENV ./microservice
 
 RUN rm -rf ./microservice && rm -rf ./docker && rm -rf ./devconf
-
-RUN composer update --lock --no-install  --no-scripts --no-interaction
-
-RUN --mount=type=cache,target=/tmp/cache composer install --no-scripts --no-interaction  "$( if [ "$APP_ENV" != "local" ]; then echo '--no-dev'; fi )" --optimize-autoloader
 
 
 FROM drmovi/php8.2-swoole
