@@ -34,3 +34,6 @@ phpunit.xml
 /vendor
 {{APP_PATH}}/vendor
 /k8s
+/.git
+.dockerignore
+
